@@ -14,6 +14,8 @@ object frmFFUI: TfrmFFUI
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnResize = FormResize
   DesignSize = (
     1008
@@ -38,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsInfo
+    ActivePage = tsConfig
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabHeight = 40
     TabOrder = 0
@@ -68,10 +70,6 @@ object frmFFUI: TfrmFFUI
     object tsPlay: TTabSheet
       Caption = #35270#39057#25773#25918'(Play)'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 626
       object pnlButtonCommand: TPanel
         Left = 0
         Top = 0
@@ -129,32 +127,19 @@ object frmFFUI: TfrmFFUI
         ParentBackground = False
         ShowCaption = False
         TabOrder = 1
-        ExplicitHeight = 584
       end
     end
     object tsConv: TTabSheet
       Caption = #26684#24335#36716#25442'(Converter)'
       ImageIndex = 2
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 626
     end
     object tsSept: TTabSheet
       Caption = #20998#31163'(Separate)'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 626
     end
     object tsMerge: TTabSheet
       Caption = #21512#24182'(Merge)'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 626
     end
     object tsLive: TTabSheet
       Caption = #35270#39057#30452#25773'(Live)'
@@ -176,7 +161,6 @@ object frmFFUI: TfrmFFUI
           'IP   '#30456#26426
           #26700#38754)
         TabOrder = 0
-        ExplicitHeight = 612
       end
       object pnlWeb: TPanel
         Left = 168
@@ -191,7 +175,6 @@ object frmFFUI: TfrmFFUI
         ParentCtl3D = False
         ShowCaption = False
         TabOrder = 1
-        ExplicitHeight = 606
       end
     end
     object tsConfig: TTabSheet
@@ -206,7 +189,7 @@ object frmFFUI: TfrmFFUI
         Width = 961
         Height = 45
         Anchors = [akLeft, akTop, akRight]
-        Caption = #20351#29992#30340#35270#39057#24211#65306
+        Caption = #25773#25918#26102#20351#29992#30340#35270#39057#24211#65306
         Columns = 3
         ItemIndex = 0
         Items.Strings = (
@@ -215,7 +198,7 @@ object frmFFUI: TfrmFFUI
           'VLC (v3.0.8)')
         TabOrder = 0
       end
-      object rg2: TRadioGroup
+      object rgGPU: TRadioGroup
         Left = 12
         Top = 72
         Width = 961
@@ -245,6 +228,7 @@ object frmFFUI: TfrmFFUI
     ParentFont = False
     ReadOnly = True
     TabOrder = 1
+    OnInvokeSearch = srchbxSelectVideoFileInvokeSearch
   end
   object stat1: TStatusBar
     Left = 0
@@ -255,7 +239,9 @@ object frmFFUI: TfrmFFUI
     SimplePanel = True
   end
   object dlgOpenVideoFile: TOpenDialog
-    Filter = #38899#35270#39057#25991#20214'(*.MP4;*.MKV)|*.MP4;*.MKV'
+    Filter = 
+      #35270#39057#25991#20214'(*.MP4;*.MKV;*.MOV;*.VOB;*.RMVB)|*.MP4;*.MKV;*.MOV;*.VOB;*.R' +
+      'MVB'
     Left = 276
     Top = 147
   end
