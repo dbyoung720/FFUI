@@ -27,7 +27,7 @@ object frmFFUI: TfrmFFUI
     Top = 11
     Width = 196
     Height = 15
-    Caption = #36873#25321#35270#39057#25991#20214'/'#25991#20214#22841'/'#32593#22336#65306
+    Caption = #25171#24320#25991#20214'/'#25991#20214#22841'/'#32593#32476#20018#27969#65306
     Font.Charset = GB2312_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
@@ -40,32 +40,13 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsConfig
+    ActivePage = tsPlay
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabHeight = 40
     TabOrder = 0
     TabWidth = 140
     object tsInfo: TTabSheet
       Caption = #25991#20214#20449#24687'(Info)'
-      object mmoInfo: TMemo
-        Left = 0
-        Top = 0
-        Width = 984
-        Height = 594
-        Align = alClient
-        BevelInner = bvNone
-        BevelOuter = bvNone
-        BorderStyle = bsNone
-        Font.Charset = GB2312_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = #23435#20307
-        Font.Style = []
-        ParentFont = False
-        ReadOnly = True
-        ScrollBars = ssBoth
-        TabOrder = 0
-      end
     end
     object tsPlay: TTabSheet
       Caption = #35270#39057#25773#25918'(Play)'
@@ -127,6 +108,7 @@ object frmFFUI: TfrmFFUI
         ParentBackground = False
         ShowCaption = False
         TabOrder = 1
+        ExplicitTop = 41
       end
     end
     object tsConv: TTabSheet
@@ -215,9 +197,9 @@ object frmFFUI: TfrmFFUI
     end
   end
   object srchbxSelectVideoFile: TSearchBox
-    Left = 224
+    Left = 216
     Top = 8
-    Width = 776
+    Width = 784
     Height = 23
     Anchors = [akLeft, akTop, akRight]
     Font.Charset = GB2312_CHARSET
@@ -226,16 +208,19 @@ object frmFFUI: TfrmFFUI
     Font.Name = #23435#20307
     Font.Style = []
     ParentFont = False
+    PopupMenu = pmOpen
     ReadOnly = True
     TabOrder = 1
+    OnDblClick = mniOpenFileClick
     OnInvokeSearch = srchbxSelectVideoFileInvokeSearch
   end
-  object stat1: TStatusBar
+  object statInfo: TStatusBar
     Left = 0
     Top = 705
     Width = 1008
     Height = 24
     Panels = <>
+    PopupMenu = pmStatCopy
     SimplePanel = True
   end
   object dlgOpenVideoFile: TOpenDialog
@@ -250,5 +235,31 @@ object frmFFUI: TfrmFFUI
     Interval = 100
     Left = 276
     Top = 219
+  end
+  object pmOpen: TPopupMenu
+    AutoHotkeys = maManual
+    Left = 832
+    Top = 65535
+    object mniOpenFile: TMenuItem
+      Caption = #25171#24320#25991#20214'...'
+      OnClick = mniOpenFileClick
+    end
+    object mniOpenFolder: TMenuItem
+      Caption = #25171#24320#25991#20214#22841'...'
+      OnClick = mniOpenFolderClick
+    end
+    object mniOpenWebStream: TMenuItem
+      Caption = #25171#24320#32593#32476#20018#27969'...'
+      OnClick = mniOpenWebStreamClick
+    end
+  end
+  object pmStatCopy: TPopupMenu
+    AutoHotkeys = maManual
+    Left = 260
+    Top = 387
+    object mniCopyDosCommand: TMenuItem
+      Caption = #22797#21046#21040#21098#20999#26495
+      OnClick = mniCopyDosCommandClick
+    end
   end
 end
