@@ -63,36 +63,33 @@ object frmFFUI: TfrmFFUI
         ShowCaption = False
         TabOrder = 0
         object btnPlay: TButton
-          Left = 8
-          Top = 4
+          Left = 10
+          Top = 5
           Width = 89
           Height = 29
           Caption = #25773#25918
           TabOrder = 0
+          OnClick = btnPlayClick
         end
         object btnPause: TButton
-          Left = 109
+          Left = 105
           Top = 4
           Width = 89
           Height = 29
           Caption = #26242#20572
+          Enabled = False
           TabOrder = 1
+          OnClick = btnPauseClick
         end
         object btnStop: TButton
-          Left = 312
+          Left = 202
           Top = 4
           Width = 89
           Height = 29
           Caption = #20572#27490
+          Enabled = False
           TabOrder = 2
-        end
-        object btnFullScreen: TButton
-          Left = 210
-          Top = 4
-          Width = 89
-          Height = 29
-          Caption = #20840#23631
-          TabOrder = 3
+          OnClick = btnStopClick
         end
       end
       object pnlVideo: TPanel
@@ -101,19 +98,47 @@ object frmFFUI: TfrmFFUI
         Width = 984
         Height = 552
         Align = alClient
-        BevelKind = bkSoft
         BevelOuter = bvNone
         Caption = 'pnl1'
         Color = clWhite
         ParentBackground = False
         ShowCaption = False
         TabOrder = 1
-        ExplicitTop = 41
       end
     end
     object tsConv: TTabSheet
       Caption = #26684#24335#36716#25442'(Converter)'
       ImageIndex = 2
+      DesignSize = (
+        984
+        594)
+      object lstFiles: TListBox
+        Left = 8
+        Top = 12
+        Width = 257
+        Height = 569
+        Anchors = [akLeft, akTop, akBottom]
+        ItemHeight = 13
+        TabOrder = 0
+      end
+      object btnAddVideoFile: TButton
+        Left = 280
+        Top = 12
+        Width = 97
+        Height = 29
+        Caption = #28155#21152
+        TabOrder = 1
+        OnClick = btnAddVideoFileClick
+      end
+      object btnDelVideoFile: TButton
+        Left = 280
+        Top = 56
+        Width = 97
+        Height = 29
+        Caption = #21024#38500
+        TabOrder = 2
+        OnClick = btnDelVideoFileClick
+      end
     end
     object tsSept: TTabSheet
       Caption = #20998#31163'(Separate)'
@@ -165,7 +190,7 @@ object frmFFUI: TfrmFFUI
       DesignSize = (
         984
         594)
-      object rg1: TRadioGroup
+      object rgUI: TRadioGroup
         Left = 12
         Top = 16
         Width = 961
@@ -179,6 +204,7 @@ object frmFFUI: TfrmFFUI
           'MPV (v2.0.0.0)'
           'VLC (v3.0.8)')
         TabOrder = 0
+        OnClick = rgUIClick
       end
       object rgGPU: TRadioGroup
         Left = 12
@@ -193,6 +219,7 @@ object frmFFUI: TfrmFFUI
           'YES ('#38656#35201' NVIDIA '#26174#21345#65292'X64'#24179#21488')'
           'NO')
         TabOrder = 1
+        OnClick = rgUIClick
       end
     end
   end
@@ -227,19 +254,19 @@ object frmFFUI: TfrmFFUI
     Filter = 
       #35270#39057#25991#20214'(*.MP4;*.MKV;*.MOV;*.VOB;*.RMVB)|*.MP4;*.MKV;*.MOV;*.VOB;*.R' +
       'MVB'
-    Left = 276
-    Top = 147
+    Left = 136
+    Top = 179
   end
   object tmrPlay: TTimer
     Enabled = False
     Interval = 100
-    Left = 276
-    Top = 219
+    Left = 140
+    Top = 231
   end
   object pmOpen: TPopupMenu
     AutoHotkeys = maManual
-    Left = 832
-    Top = 65535
+    Left = 828
+    Top = 3
     object mniOpenFile: TMenuItem
       Caption = #25171#24320#25991#20214'...'
       OnClick = mniOpenFileClick
@@ -255,11 +282,18 @@ object frmFFUI: TfrmFFUI
   end
   object pmStatCopy: TPopupMenu
     AutoHotkeys = maManual
-    Left = 260
-    Top = 387
+    Left = 136
+    Top = 303
     object mniCopyDosCommand: TMenuItem
       Caption = #22797#21046#21040#21098#20999#26495
       OnClick = mniCopyDosCommandClick
     end
+  end
+  object tmrPlayVideo: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = tmrPlayVideoTimer
+    Left = 308
+    Top = 177
   end
 end
