@@ -73,7 +73,6 @@ type
     procedure DosCommandLine(ASender: TObject; const ANewLine: string; AOutputType: TOutputType);
     procedure FindVideoFile(const strFolder: string);
     procedure PlayVideoFile(const strVideoFileName: String);
-    procedure PlayWebStream(const strWebStreamAddr: String);
     procedure SendPlayUIKey(H: HWND; Key: Char);
   public
     { Public declarations }
@@ -310,11 +309,6 @@ begin
   btnStop.Enabled      := True;
 end;
 
-procedure TfrmFFUI.PlayWebStream(const strWebStreamAddr: String);
-begin
-  //
-end;
-
 procedure TfrmFFUI.btnPlayClick(Sender: TObject);
 begin
   if FhPlayVideoWnd <> 0 then
@@ -328,7 +322,7 @@ begin
   else if FFileStyle = fsFolder then
     PlayVideoFile(lstFiles.Items.Strings[0])
   else if FFileStyle = fsStream then
-    PlayWebStream(srchbxSelectVideoFile.Text);
+    PlayVideoFile(srchbxSelectVideoFile.Text);
 end;
 
 procedure TfrmFFUI.SendPlayUIKey(H: HWND; Key: Char);
@@ -377,7 +371,6 @@ begin
   end;
 end;
 {$ENDREGION}
-
 {$REGION 'VideoConvertor'}
 
 procedure TfrmFFUI.btnAddVideoFileClick(Sender: TObject);
