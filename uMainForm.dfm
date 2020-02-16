@@ -47,10 +47,18 @@ object frmFFUI: TfrmFFUI
     TabWidth = 140
     object tsInfo: TTabSheet
       Caption = #25991#20214#20449#24687'(Info)'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object tsPlay: TTabSheet
       Caption = #35270#39057#25773#25918'(Play)'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object pnlButtonCommand: TPanel
         Left = 0
         Top = 0
@@ -179,15 +187,6 @@ object frmFFUI: TfrmFFUI
         TabOrder = 3
         OnClick = btnAddFolderClick
       end
-      object lstResult: TListBox
-        Left = 404
-        Top = 12
-        Width = 257
-        Height = 569
-        Anchors = [akLeft, akTop, akBottom]
-        ItemHeight = 13
-        TabOrder = 4
-      end
       object cbbConv: TComboBox
         Left = 280
         Top = 181
@@ -201,21 +200,21 @@ object frmFFUI: TfrmFFUI
         Font.Style = []
         ItemIndex = 0
         ParentFont = False
-        TabOrder = 5
+        TabOrder = 4
         Text = 'H264 (*.MKV)'
         Items.Strings = (
           'H264 (*.MKV)'
           'H265 (*.MKV)'
           'Flash(*.FLV)')
       end
-      object btnConv: TButton
+      object btnVideoStartConv: TButton
         Left = 280
-        Top = 500
+        Top = 384
         Width = 109
         Height = 81
         Caption = #36716#25442
-        TabOrder = 6
-        OnClick = btnConvClick
+        TabOrder = 5
+        OnClick = btnVideoStartConvClick
       end
       object chkSize: TCheckBox
         Left = 284
@@ -225,7 +224,7 @@ object frmFFUI: TfrmFFUI
         Caption = #20445#25345#35270#39057#23485#39640
         Checked = True
         State = cbChecked
-        TabOrder = 7
+        TabOrder = 6
         OnClick = chkSizeClick
       end
       object edtVideoWidth: TEdit
@@ -234,7 +233,7 @@ object frmFFUI: TfrmFFUI
         Width = 52
         Height = 21
         NumbersOnly = True
-        TabOrder = 8
+        TabOrder = 7
         Text = '800'
         Visible = False
       end
@@ -244,7 +243,7 @@ object frmFFUI: TfrmFFUI
         Width = 52
         Height = 21
         NumbersOnly = True
-        TabOrder = 9
+        TabOrder = 8
         Text = '600'
         Visible = False
       end
@@ -256,7 +255,7 @@ object frmFFUI: TfrmFFUI
         Caption = #20445#23384#36335#24452#21516#25991#20214
         Checked = True
         State = cbChecked
-        TabOrder = 10
+        TabOrder = 9
         OnClick = chkVideoSavePathClick
       end
       object btnSaveVideoPath: TButton
@@ -265,7 +264,7 @@ object frmFFUI: TfrmFFUI
         Width = 36
         Height = 20
         Caption = #36873#25321
-        TabOrder = 11
+        TabOrder = 10
         Visible = False
       end
       object edtSaveVideoPath: TEdit
@@ -273,32 +272,56 @@ object frmFFUI: TfrmFFUI
         Top = 336
         Width = 76
         Height = 21
-        TabOrder = 12
+        TabOrder = 11
         Visible = False
       end
-      object chkVideoOverride: TCheckBox
-        Left = 284
-        Top = 378
-        Width = 114
-        Height = 17
-        Caption = #21516#25991#20214#21517#35206#30422
-        Checked = True
-        Enabled = False
-        State = cbChecked
+      object btnVideoStopConv: TButton
+        Left = 280
+        Top = 471
+        Width = 109
+        Height = 57
+        Caption = #20572#27490#36716#25442
+        TabOrder = 12
+        OnClick = btnVideoStopConvClick
+      end
+      object pnlVideoConv: TPanel
+        Left = 412
+        Top = 12
+        Width = 561
+        Height = 569
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        BevelOuter = bvNone
+        BorderStyle = bsSingle
+        Caption = 'pnlVideoConv'
+        Ctl3D = False
+        ParentCtl3D = False
+        ShowCaption = False
         TabOrder = 13
       end
     end
     object tsSept: TTabSheet
       Caption = #20998#31163'(Separate)'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object tsMerge: TTabSheet
       Caption = #21512#24182'(Merge)'
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object tsLive: TTabSheet
       Caption = #35270#39057#30452#25773'(Live)'
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         984
         594)
@@ -335,6 +358,10 @@ object frmFFUI: TfrmFFUI
     object tsConfig: TTabSheet
       Caption = #37197#32622'(Config)'
       ImageIndex = 6
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         984
         594)
