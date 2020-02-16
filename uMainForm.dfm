@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsPlay
+    ActivePage = tsConv
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabHeight = 40
     TabOrder = 0
@@ -112,6 +112,37 @@ object frmFFUI: TfrmFFUI
       DesignSize = (
         984
         594)
+      object lblConvTip: TLabel
+        Left = 280
+        Top = 162
+        Width = 48
+        Height = 13
+        Caption = #36716#25442#20026#65306
+      end
+      object lblVideoWidth: TLabel
+        Left = 296
+        Top = 239
+        Width = 24
+        Height = 13
+        Caption = #23485#65306
+        Visible = False
+      end
+      object lblVideoHeight: TLabel
+        Left = 296
+        Top = 260
+        Width = 24
+        Height = 13
+        Caption = #23485#65306
+        Visible = False
+      end
+      object lblSaveVideoPath: TLabel
+        Left = 296
+        Top = 317
+        Width = 36
+        Height = 13
+        Caption = #36335#24452#65306
+        Visible = False
+      end
       object lstFiles: TListBox
         Left = 8
         Top = 12
@@ -124,20 +155,137 @@ object frmFFUI: TfrmFFUI
       object btnAddVideoFile: TButton
         Left = 280
         Top = 12
-        Width = 97
+        Width = 109
         Height = 29
-        Caption = #28155#21152
+        Caption = #28155#21152#25991#20214
         TabOrder = 1
         OnClick = btnAddVideoFileClick
       end
       object btnDelVideoFile: TButton
         Left = 280
-        Top = 56
-        Width = 97
+        Top = 100
+        Width = 109
         Height = 29
         Caption = #21024#38500
         TabOrder = 2
         OnClick = btnDelVideoFileClick
+      end
+      object btnAddFolder: TButton
+        Left = 280
+        Top = 56
+        Width = 109
+        Height = 29
+        Caption = #28155#21152#25991#20214#22841
+        TabOrder = 3
+        OnClick = btnAddFolderClick
+      end
+      object lstResult: TListBox
+        Left = 404
+        Top = 12
+        Width = 257
+        Height = 569
+        Anchors = [akLeft, akTop, akBottom]
+        ItemHeight = 13
+        TabOrder = 4
+      end
+      object cbbConv: TComboBox
+        Left = 280
+        Top = 181
+        Width = 109
+        Height = 21
+        Style = csDropDownList
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ItemIndex = 0
+        ParentFont = False
+        TabOrder = 5
+        Text = 'H264 (*.MKV)'
+        Items.Strings = (
+          'H264 (*.MKV)'
+          'H265 (*.MKV)'
+          'Flash(*.FLV)')
+      end
+      object btnConv: TButton
+        Left = 280
+        Top = 500
+        Width = 109
+        Height = 81
+        Caption = #36716#25442
+        TabOrder = 6
+        OnClick = btnConvClick
+      end
+      object chkSize: TCheckBox
+        Left = 284
+        Top = 216
+        Width = 114
+        Height = 17
+        Caption = #20445#25345#35270#39057#23485#39640
+        Checked = True
+        State = cbChecked
+        TabOrder = 7
+        OnClick = chkSizeClick
+      end
+      object edtVideoWidth: TEdit
+        Left = 320
+        Top = 233
+        Width = 52
+        Height = 21
+        NumbersOnly = True
+        TabOrder = 8
+        Text = '800'
+        Visible = False
+      end
+      object edtVideoHeight: TEdit
+        Left = 320
+        Top = 259
+        Width = 52
+        Height = 21
+        NumbersOnly = True
+        TabOrder = 9
+        Text = '600'
+        Visible = False
+      end
+      object chkVideoSavePath: TCheckBox
+        Left = 284
+        Top = 294
+        Width = 114
+        Height = 17
+        Caption = #20445#23384#36335#24452#21516#25991#20214
+        Checked = True
+        State = cbChecked
+        TabOrder = 10
+        OnClick = chkVideoSavePathClick
+      end
+      object btnSaveVideoPath: TButton
+        Left = 336
+        Top = 315
+        Width = 36
+        Height = 20
+        Caption = #36873#25321
+        TabOrder = 11
+        Visible = False
+      end
+      object edtSaveVideoPath: TEdit
+        Left = 296
+        Top = 336
+        Width = 76
+        Height = 21
+        TabOrder = 12
+        Visible = False
+      end
+      object chkVideoOverride: TCheckBox
+        Left = 284
+        Top = 378
+        Width = 114
+        Height = 17
+        Caption = #21516#25991#20214#21517#35206#30422
+        Checked = True
+        Enabled = False
+        State = cbChecked
+        TabOrder = 13
       end
     end
     object tsSept: TTabSheet
@@ -252,10 +400,10 @@ object frmFFUI: TfrmFFUI
   end
   object dlgOpenVideoFile: TOpenDialog
     Filter = 
-      #35270#39057#25991#20214'(*.MP4;*.MKV;*.MOV;*.VOB;*.RMVB)|*.MP4;*.MKV;*.MOV;*.VOB;*.R' +
-      'MVB'
-    Left = 136
-    Top = 179
+      #35270#39057#25991#20214'(*.AVI;*.MP4;*.MKV;*.MOV;*.RMVB;*.VOB)|*.AVI;*.MP4;*.MKV;*.M' +
+      'OV;*.RMVB;*.VOB'
+    Left = 140
+    Top = 175
   end
   object tmrPlay: TTimer
     Enabled = False
@@ -293,7 +441,7 @@ object frmFFUI: TfrmFFUI
     Enabled = False
     Interval = 100
     OnTimer = tmrPlayVideoTimer
-    Left = 308
-    Top = 177
+    Left = 136
+    Top = 385
   end
 end

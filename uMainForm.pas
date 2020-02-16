@@ -46,6 +46,21 @@ type
     btnAddVideoFile: TButton;
     btnDelVideoFile: TButton;
     tmrPlayVideo: TTimer;
+    btnAddFolder: TButton;
+    lstResult: TListBox;
+    lblConvTip: TLabel;
+    cbbConv: TComboBox;
+    btnConv: TButton;
+    chkSize: TCheckBox;
+    lblVideoWidth: TLabel;
+    lblVideoHeight: TLabel;
+    edtVideoWidth: TEdit;
+    edtVideoHeight: TEdit;
+    chkVideoSavePath: TCheckBox;
+    lblSaveVideoPath: TLabel;
+    btnSaveVideoPath: TButton;
+    edtSaveVideoPath: TEdit;
+    chkVideoOverride: TCheckBox;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -61,6 +76,10 @@ type
     procedure tmrPlayVideoTimer(Sender: TObject);
     procedure btnPauseClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
+    procedure btnAddFolderClick(Sender: TObject);
+    procedure chkSizeClick(Sender: TObject);
+    procedure chkVideoSavePathClick(Sender: TObject);
+    procedure btnConvClick(Sender: TObject);
   private
     FDOSCommand   : TDosCommand;
     FSynEdit      : TSynEdit;
@@ -73,9 +92,10 @@ type
     procedure DosCommandLine(ASender: TObject; const ANewLine: string; AOutputType: TOutputType);
     procedure FindVideoFile(const strFolder: string);
     procedure PlayVideoFile(const strVideoFileName: String);
+    { 向 ffplay/mpv 播放器发送键盘命令 }
     procedure SendPlayUIKey(H: HWND; Key: Char);
-  public
-    { Public declarations }
+    { 向 vlc 播放器发送键盘命令 }
+    procedure SendPlayUIKey_vlc(H: HWND; Key: Char);
   end;
 
 var
@@ -139,6 +159,7 @@ begin
   FJSONHL                 := TSynJSONSyn.Create(Self);
   FSynEdit.Highlighter    := FJSONHL;
 
+  FhPlayVideoWnd         := 0;
   pgcAll.ActivePageIndex := 0;
   LoadConfig;
 end;
@@ -204,6 +225,10 @@ var
   gfs        : TStringDynArray;
   strFileName: String;
 begin
+  gfs := TDirectory.GetFiles(strFolder, '*.avi');
+  for strFileName in gfs do
+    lstFiles.Items.Add(strFileName);
+
   gfs := TDirectory.GetFiles(strFolder, '*.mp4');
   for strFileName in gfs do
     lstFiles.Items.Add(strFileName);
@@ -212,11 +237,15 @@ begin
   for strFileName in gfs do
     lstFiles.Items.Add(strFileName);
 
-  gfs := TDirectory.GetFiles(strFolder, '*.vob');
+  gfs := TDirectory.GetFiles(strFolder, '*.mov');
   for strFileName in gfs do
     lstFiles.Items.Add(strFileName);
 
   gfs := TDirectory.GetFiles(strFolder, '*.rmvb');
+  for strFileName in gfs do
+    lstFiles.Items.Add(strFileName);
+
+  gfs := TDirectory.GetFiles(strFolder, '*.vob');
   for strFileName in gfs do
     lstFiles.Items.Add(strFileName);
 
@@ -311,6 +340,13 @@ end;
 
 procedure TfrmFFUI.btnPlayClick(Sender: TObject);
 begin
+  if srchbxSelectVideoFile.Text = '' then
+  begin
+    MessageBox(Handle, '请先选择打开一个视频文件，再播放', '系统提示：', MB_OK or MB_ICONWARNING);
+    srchbxSelectVideoFile.SetFocus;
+    Exit;
+  end;
+
   if FhPlayVideoWnd <> 0 then
   begin
     MessageBox(Handle, '视频正在播放，请停止后，再次播放', '系统提示：', MB_OK or MB_ICONWARNING);
@@ -325,6 +361,7 @@ begin
     PlayVideoFile(srchbxSelectVideoFile.Text);
 end;
 
+{ 向 ffplay/mpv 播放器发送键盘命令 }
 procedure TfrmFFUI.SendPlayUIKey(H: HWND; Key: Char);
 var
   vKey, ScanCode : Word;
@@ -340,48 +377,86 @@ begin
   SendMessage(H, WM_KEYUP, vKey, lParam);
 end;
 
+{ 向 vlc 播放器发送键盘命令 }
+procedure TfrmFFUI.SendPlayUIKey_vlc(H: HWND; Key: Char);
+begin
+  //
+end;
+
 procedure TfrmFFUI.btnPauseClick(Sender: TObject);
 begin
-  if FhPlayVideoWnd <> 0 then
-  begin
-    if rgUI.ItemIndex <> 2 then
-    begin
-      SendPlayUIKey(FhPlayVideoWnd, 'p');
-    end
-    else
-    begin
-      SendPlayUIKey(FhPlayVideoWnd, Char(VK_SPACE));
-    end;
-  end;
+  if FhPlayVideoWnd = 0 then
+    Exit;
+
+  if rgUI.ItemIndex <> 2 then
+    SendPlayUIKey(FhPlayVideoWnd, 'p')
+  else
+    SendPlayUIKey_vlc(FhPlayVideoWnd, Char(VK_SPACE));
 end;
 
 procedure TfrmFFUI.btnStopClick(Sender: TObject);
 begin
-  if FhPlayVideoWnd <> 0 then
-  begin
-    if rgUI.ItemIndex <> 2 then
-      SendPlayUIKey(FhPlayVideoWnd, 'q')
-    else
-      SendPlayUIKey(FhPlayVideoWnd, 's');
+  if FhPlayVideoWnd = 0 then
+    Exit;
 
-    btnPlay.Enabled  := True;
-    btnPause.Enabled := False;
-    btnStop.Enabled  := False;
-    FhPlayVideoWnd   := 0;
-  end;
+  if rgUI.ItemIndex <> 2 then
+    SendPlayUIKey(FhPlayVideoWnd, 'q')
+  else
+    SendPlayUIKey_vlc(FhPlayVideoWnd, 's');
+
+  btnPlay.Enabled  := True;
+  btnPause.Enabled := False;
+  btnStop.Enabled  := False;
+  FhPlayVideoWnd   := 0;
 end;
 {$ENDREGION}
+
 {$REGION 'VideoConvertor'}
+
+procedure TfrmFFUI.btnAddFolderClick(Sender: TObject);
+var
+  strFolder: String;
+begin
+  if not SelectDirectory('选择一个目录，目录下包含视频文件', '', strFolder) then
+    Exit;
+
+  FindVideoFile(strFolder);
+end;
 
 procedure TfrmFFUI.btnAddVideoFileClick(Sender: TObject);
 begin
-  //
+  if not dlgOpenVideoFile.Execute then
+    Exit;
+
+  lstFiles.Items.Add(dlgOpenVideoFile.FileName);
 end;
 
 procedure TfrmFFUI.btnDelVideoFileClick(Sender: TObject);
 begin
+  if lstFiles.ItemIndex <> -1 then
+    lstFiles.DeleteSelected;
+end;
+
+procedure TfrmFFUI.chkSizeClick(Sender: TObject);
+begin
+  lblVideoWidth.Visible  := not chkSize.Checked;
+  lblVideoHeight.Visible := not chkSize.Checked;
+  edtVideoWidth.Visible  := not chkSize.Checked;
+  edtVideoHeight.Visible := not chkSize.Checked;
+end;
+
+procedure TfrmFFUI.chkVideoSavePathClick(Sender: TObject);
+begin
+  lblSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+  edtSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+  btnSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+end;
+
+procedure TfrmFFUI.btnConvClick(Sender: TObject);
+begin
   //
 end;
+
 {$ENDREGION}
 
 end.
