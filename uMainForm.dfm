@@ -47,18 +47,10 @@ object frmFFUI: TfrmFFUI
     TabWidth = 140
     object tsInfo: TTabSheet
       Caption = #25991#20214#20449#24687'(Info)'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object tsPlay: TTabSheet
       Caption = #35270#39057#25773#25918'(Play)'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object pnlButtonCommand: TPanel
         Left = 0
         Top = 0
@@ -302,26 +294,14 @@ object frmFFUI: TfrmFFUI
     object tsSept: TTabSheet
       Caption = #20998#31163'(Separate)'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object tsMerge: TTabSheet
       Caption = #21512#24182'(Merge)'
       ImageIndex = 5
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object tsLive: TTabSheet
       Caption = #35270#39057#30452#25773'(Live)'
       ImageIndex = 4
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         984
         594)
@@ -358,10 +338,6 @@ object frmFFUI: TfrmFFUI
     object tsConfig: TTabSheet
       Caption = #37197#32622'(Config)'
       ImageIndex = 6
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         984
         594)

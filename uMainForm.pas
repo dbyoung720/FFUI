@@ -490,10 +490,12 @@ end;
 
 procedure TfrmFFUI.btnVideoStartConvClick(Sender: TObject);
 const
-  c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner                                -i "%s" -c:v libx264    -y "%s"';
-  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -hwaccel cuvid -c:v h264_cuvid -i "%s" -c:v h264_nvenc -y "%s"';
-  c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner                                -i "%s" -c:v libx265    -y "%s"';
-  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -hwaccel cuvid -c:v h265_cuvid -i "%s" -c:v h265_nvenc -y "%s"';
+  c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    -y "%s"';
+  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc -y "%s"';
+  c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    -y "%s"';
+  c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx265    -y "%s"';
+  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h265_nvenc -y "%s"';
+  c_strFFMPEGConv_GPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc -y "%s"';
 var
   strFFMPEGPath      : String;
   strFFMPGCommandLine: String;
@@ -502,6 +504,31 @@ var
   I                  : Integer;
   strTempCMDFileName : String;
   lstCMD             : TStringList;
+  strExtFileName     : String;
+  procedure X86;
+  begin
+    case cbbConv.ItemIndex of
+      0:
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strOutPutFile]);
+      1:
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H265, [strFFMPEGPath, strInputFile, strOutPutFile]);
+      2:
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_FFLV, [strFFMPEGPath, strInputFile, strOutPutFile]);
+    end;
+  end;
+
+  procedure X64_GPU;
+  begin
+    case cbbConv.ItemIndex of
+      0:
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H264, [strFFMPEGPath, strInputFile, strOutPutFile]);
+      1:
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strOutPutFile]);
+      2:
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_FFLV, [strFFMPEGPath, strInputFile, strOutPutFile]);
+    end;
+  end;
+
 begin
   if lstFiles.Count <= 0 then
   begin
@@ -509,24 +536,24 @@ begin
     Exit;
   end;
 
-  strFFMPEGPath := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
-  lstCMD        := TStringList.Create;
+  strExtFileName := Ifthen(cbbConv.ItemIndex <> 2, '.mkv', '.flv');
+  strFFMPEGPath  := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  lstCMD         := TStringList.Create;
   try
     for I := 0 to lstFiles.Count - 1 do
     begin
       Application.ProcessMessages;
       strInputFile  := lstFiles.Items.Strings[I];
-      strOutPutFile := ChangeFileExt(strInputFile, '.mkv');
+      strOutPutFile := ChangeFileExt(strInputFile, strExtFileName);
       if SameText(strOutPutFile, strInputFile) then
-        strOutPutFile := strInputFile + '.mkv';
-
+        strOutPutFile := strInputFile + strExtFileName;
 {$IF Defined(CPUX86)}
-      strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strOutPutFile]);
+      X86;
 {$ELSE}
       if rgGPU.ItemIndex = 0 then
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strOutPutFile])
+        X64_GPU
       else
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strOutPutFile]);
+        X86;
 {$ENDIF}
       lstCMD.Add(strFFMPGCommandLine);
     end;
