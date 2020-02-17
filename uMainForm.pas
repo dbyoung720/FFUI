@@ -51,7 +51,7 @@ type
     btnVideoStopConv: TButton;
     pnlVideoConv: TPanel;
     grpVideoConv: TGroupBox;
-    chkSize: TCheckBox;
+    chkVideoSize: TCheckBox;
     lblVideoWidth: TLabel;
     lblVideoHeight: TLabel;
     edtVideoHeight: TEdit;
@@ -90,11 +90,13 @@ type
     procedure btnPauseClick(Sender: TObject);
     procedure btnStopClick(Sender: TObject);
     procedure btnAddFolderClick(Sender: TObject);
-    procedure chkSizeClick(Sender: TObject);
+    procedure chkVideoSizeClick(Sender: TObject);
     procedure chkVideoSavePathClick(Sender: TObject);
     procedure btnVideoStartConvClick(Sender: TObject);
     procedure btnVideoStopConvClick(Sender: TObject);
     procedure btnVideoConvParamClick(Sender: TObject);
+    procedure btnSaveConvParamClick(Sender: TObject);
+    procedure btnSaveConvParamAndStartConvClick(Sender: TObject);
   private
     FDOSCommand       : TDosCommand;
     FSynEdit_VideoInfo: TSynEdit;
@@ -103,13 +105,22 @@ type
     FFileStyle        : TFileStyle;
     FhPlayVideoWnd    : HWND;
     FbVideoConv       : Boolean;
+    { 创建语法高亮的 SynEdit 控件 }
     procedure CreateSynEdit;
+    { 加载系统参数 }
     procedure LoadConfig;
-    procedure SaveConfig;
+    { 保存系统参数 }
+    procedure SaveConfigProc;
+    function SaveConfig: Boolean;
+    { 获取视频文件格式信息 }
     procedure GetVideoFileInfo(const strFileName: string);
+    { 视频转换结束 }
     procedure DosCommandTerminated(Sender: TObject);
+    { Dos 命令行运行返回的字符串 }
     procedure DosCommandLine(ASender: TObject; const ANewLine: string; AOutputType: TOutputType);
+    { 查询目录下的所有视频文件 }
     procedure FindVideoFile(const strFolder: string);
+    { 播放视频 }
     procedure PlayVideoFile(const strVideoFileName: String);
     { 向 ffplay/mpv 播放器发送键盘命令 }
     procedure SendPlayUIKey(H: HWND; Key: Char);
@@ -126,6 +137,10 @@ implementation
 
 {$R *.dfm}
 
+const
+  c_strMsgTitle: PChar = '系统提示：';
+
+  { 加载系统参数 }
 procedure TfrmFFUI.LoadConfig;
 var
   strIniFileName: String;
@@ -134,6 +149,26 @@ begin
   with TIniFile.Create(strIniFileName) do
   begin
     rgUI.ItemIndex := ReadInteger('Main', 'PlayUI', 0);
+
+    { 视频转换参数 }
+    cbbConv.ItemIndex        := ReadInteger('Conv', 'Format', 0);
+    chkVideoSize.Checked     := ReadBool('Conv', 'SameSize', True);
+    chkVideoSavePath.Checked := ReadBool('COnv', 'SamePath', True);
+    if not chkVideoSize.Checked then
+    begin
+      edtVideoWidth.Text  := ReadString('Conv', 'SizeWidth', '800');
+      edtVideoHeight.Text := ReadString('Conv', 'SizeHeight', '600');
+    end;
+    if not chkVideoSavePath.Checked then
+    begin
+      edtSaveVideoPath.Text := ReadString('Conv', 'SavePath', 'D:\');
+    end;
+
+    { 视频剪辑信息 }
+    edtTitle.Text   := ReadString('Conv', 'Title', 'dbyoung');
+    edtArtist.Text  := ReadString('Conv', 'Artist', 'FFUI 2.0');
+    edtGenre.Text   := ReadString('Conv', 'Genre', 'Video');
+    edtComment.Text := ReadString('Conv', 'Comment', 'dbyoung@sina.com');
     Free;
   end;
 
@@ -150,7 +185,8 @@ begin
 {$ENDIF}
 end;
 
-procedure TfrmFFUI.SaveConfig;
+{ 保存系统参数 }
+procedure TfrmFFUI.SaveConfigProc;
 var
   strIniFileName: String;
 begin
@@ -159,10 +195,107 @@ begin
   begin
     WriteInteger('Main', 'PlayUI', rgUI.ItemIndex);
     WriteInteger('Main', 'UseGPU', rgGPU.ItemIndex);
+    WriteInteger('Conv', 'Format', cbbConv.ItemIndex);
+    WriteBool('Conv', 'SameSize', chkVideoSize.Checked);
+    WriteBool('Conv', 'SamePath', chkVideoSavePath.Checked);
+
+    { 视频分辨率大小 }
+    if not chkVideoSize.Checked then
+    begin
+      WriteString('Conv', 'SizeWidth', edtVideoWidth.Text);
+      WriteString('Conv', 'SizeHeight', edtVideoHeight.Text);
+    end
+    else
+    begin
+      DeleteKey('Conv', 'SizeWidth');
+      DeleteKey('Conv', 'SizeHeight');
+    end;
+
+    { 视频保存路径 }
+    if not chkVideoSavePath.Checked then
+      WriteString('Conv', 'SavePath', edtSaveVideoPath.Text)
+    else
+      DeleteKey('Conv', 'SavePath');
+
+    { 视频剪辑信息 }
+    WriteString('Conv', 'Title', edtTitle.Text);
+    WriteString('Conv', 'Artist', edtArtist.Text);
+    WriteString('Conv', 'Genre', edtGenre.Text);
+    WriteString('Conv', 'Comment', edtComment.Text);
+
     Free;
   end;
 end;
 
+{ 保存系统参数 }
+function TfrmFFUI.SaveConfig: Boolean;
+begin
+  Result := False;
+
+  if (Trim(edtTitle.Text) = '') or (Trim(edtArtist.Text) = '') or (Trim(edtGenre.Text) = '') or (Trim(edtComment.Text) = '') then
+  begin
+    MessageBox(Handle, '视频剪辑信息不允许为空，请输入正确的值', c_strMsgTitle, MB_OK or MB_ICONWARNING);
+    Exit;
+  end;
+
+  if not chkVideoSize.Checked then
+  begin
+    if (Trim(edtVideoWidth.Text) = '') or (Trim(edtVideoHeight.Text) = '') or (edtVideoWidth.Text = '0') or (edtVideoHeight.Text = '0') then
+    begin
+      MessageBox(Handle, '必须输入正确视频的宽和高', c_strMsgTitle, MB_OK or MB_ICONWARNING);
+      edtVideoWidth.SetFocus;
+      Exit;
+    end;
+  end;
+
+  if not chkVideoSavePath.Checked then
+  begin
+    if Trim(edtSaveVideoPath.Text) = '' then
+    begin
+      MessageBox(Handle, '必须选择一个目录，来保存转换后的视频', c_strMsgTitle, MB_OK or MB_ICONWARNING);
+      Exit;
+    end;
+  end;
+
+  Result := True;
+  SaveConfigProc;
+end;
+
+procedure TfrmFFUI.rgUIClick(Sender: TObject);
+begin
+  SaveConfig;
+end;
+
+procedure TfrmFFUI.btnSaveConvParamAndStartConvClick(Sender: TObject);
+begin
+  if not SaveConfig then
+    Exit;
+
+  pgcAll.ActivePage := tsConv;
+  btnVideoStartConv.Click;
+end;
+
+procedure TfrmFFUI.btnSaveConvParamClick(Sender: TObject);
+begin
+  SaveConfig;
+end;
+
+procedure TfrmFFUI.chkVideoSizeClick(Sender: TObject);
+begin
+  lblVideoWidth.Visible  := not chkVideoSize.Checked;
+  lblVideoHeight.Visible := not chkVideoSize.Checked;
+  edtVideoWidth.Visible  := not chkVideoSize.Checked;
+  edtVideoHeight.Visible := not chkVideoSize.Checked;
+end;
+
+procedure TfrmFFUI.chkVideoSavePathClick(Sender: TObject);
+begin
+  lblSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+  edtSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+  btnSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+end;
+
+{ 创建语法高亮的 SynEdit 控件 }
 procedure TfrmFFUI.CreateSynEdit;
 begin
   FJSONHL := TSynJSONSyn.Create(Self);
@@ -190,28 +323,31 @@ begin
   FSynEdit_VideoConv.ScrollBars     := ssVertical;
   FSynEdit_VideoConv.Highlighter    := FJSONHL;
   FSynEdit_VideoConv.ReadOnly       := True;
-
 end;
 
 procedure TfrmFFUI.FormCreate(Sender: TObject);
 begin
+  { 创建第三方控件 }
   FDOSCommand              := TDosCommand.Create(nil);
   FDOSCommand.OnNewLine    := DosCommandLine;
   FDOSCommand.OnTerminated := DosCommandTerminated;
-
   CreateSynEdit;
 
+  { 初始化变量 }
   FbVideoConv            := False;
   FhPlayVideoWnd         := 0;
   pgcAll.ActivePageIndex := 0;
 
+  { 加载系统参数 }
   LoadConfig;
 end;
 
 procedure TfrmFFUI.FormDestroy(Sender: TObject);
 begin
+  { 保存系统参数 }
   SaveConfig;
 
+  { 销毁创建的第三方控件 }
   FDOSCommand.Free;
   FJSONHL.Free;
   FSynEdit_VideoConv.Free;
@@ -230,6 +366,7 @@ begin
   end;
 end;
 
+{ Dos 命令行运行返回的字符串 }
 procedure TfrmFFUI.DosCommandLine(ASender: TObject; const ANewLine: string; AOutputType: TOutputType);
 begin
   if FbVideoConv then
@@ -242,6 +379,7 @@ begin
   end;
 end;
 
+{ 视频转换结束 }
 procedure TfrmFFUI.DosCommandTerminated(Sender: TObject);
 begin
   if FbVideoConv then
@@ -252,11 +390,13 @@ begin
   end;
 end;
 
+{ Dos 命令行参数复制到剪切板 }
 procedure TfrmFFUI.mniCopyDosCommandClick(Sender: TObject);
 begin
   Clipboard.AsText := statInfo.SimpleText;
 end;
 
+{ 获取视频文件格式信息 }
 procedure TfrmFFUI.GetVideoFileInfo(const strFileName: string);
 var
   strFFMPEGPath: string;
@@ -269,19 +409,7 @@ begin
   statInfo.SimpleText := FDOSCommand.CommandLine;
 end;
 
-procedure TfrmFFUI.mniOpenFileClick(Sender: TObject);
-begin
-  if not dlgOpenVideoFile.Execute then
-    Exit;
-
-  FFileStyle                 := fsFile;
-  srchbxSelectVideoFile.Text := dlgOpenVideoFile.FileName;
-  pgcAll.ActivePage          := tsInfo;
-  GetVideoFileInfo(dlgOpenVideoFile.FileName);
-  lstFiles.Items.Add(dlgOpenVideoFile.FileName);
-end;
-
-{ 查询目录下的视频文件 }
+{ 查询目录下的所有视频文件 }
 procedure TfrmFFUI.FindVideoFile(const strFolder: string);
 var
   gfs        : TStringDynArray;
@@ -318,11 +446,25 @@ begin
   end;
 end;
 
+{ 打开文件 }
+procedure TfrmFFUI.mniOpenFileClick(Sender: TObject);
+begin
+  if not dlgOpenVideoFile.Execute then
+    Exit;
+
+  FFileStyle                 := fsFile;
+  srchbxSelectVideoFile.Text := dlgOpenVideoFile.FileName;
+  pgcAll.ActivePage          := tsInfo;
+  GetVideoFileInfo(dlgOpenVideoFile.FileName);
+  lstFiles.Items.Add(dlgOpenVideoFile.FileName);
+end;
+
+{ 打开文件夹 }
 procedure TfrmFFUI.mniOpenFolderClick(Sender: TObject);
 var
   strFolder: String;
 begin
-  if not SelectDirectory('选择一个目录，目录下包含视频文件', '', strFolder) then
+  if not SelectDirectory('选择一个目录，目录下包含视频文件', '目录名称：', strFolder) then
     Exit;
 
   srchbxSelectVideoFile.Text := strFolder;
@@ -330,6 +472,7 @@ begin
   FFileStyle := fsFolder;
 end;
 
+{ 打开网络视频流地址 }
 procedure TfrmFFUI.mniOpenWebStreamClick(Sender: TObject);
 var
   strWebStreamAddr: String;
@@ -341,11 +484,6 @@ begin
   FFileStyle                 := fsStream;
   pgcAll.ActivePage          := tsPlay;
   btnPlay.Click;
-end;
-
-procedure TfrmFFUI.rgUIClick(Sender: TObject);
-begin
-  SaveConfig;
 end;
 
 procedure TfrmFFUI.srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -378,6 +516,7 @@ begin
   end;
 end;
 
+{ 播放视频 }
 procedure TfrmFFUI.PlayVideoFile(const strVideoFileName: String);
 var
   strPlayProgramPath: String;
@@ -412,14 +551,14 @@ procedure TfrmFFUI.btnPlayClick(Sender: TObject);
 begin
   if srchbxSelectVideoFile.Text = '' then
   begin
-    MessageBox(Handle, '请先选择打开一个视频文件，再播放', '系统提示：', MB_OK or MB_ICONWARNING);
+    MessageBox(Handle, '请先选择打开一个视频文件，再播放', c_strMsgTitle, MB_OK or MB_ICONWARNING);
     srchbxSelectVideoFile.SetFocus;
     Exit;
   end;
 
   if FhPlayVideoWnd <> 0 then
   begin
-    MessageBox(Handle, '视频正在播放，请停止后，再次播放', '系统提示：', MB_OK or MB_ICONWARNING);
+    MessageBox(Handle, '视频正在播放，请停止后，再次播放', c_strMsgTitle, MB_OK or MB_ICONWARNING);
     Exit;
   end;
 
@@ -486,7 +625,7 @@ procedure TfrmFFUI.btnAddFolderClick(Sender: TObject);
 var
   strFolder: String;
 begin
-  if not SelectDirectory('选择一个目录，目录下包含视频文件', '', strFolder) then
+  if not SelectDirectory('选择一个目录，目录下包含视频文件', '目录名称：', strFolder) then
     Exit;
 
   FindVideoFile(strFolder);
@@ -506,34 +645,22 @@ begin
     lstFiles.DeleteSelected;
 end;
 
-procedure TfrmFFUI.chkSizeClick(Sender: TObject);
-begin
-  lblVideoWidth.Visible  := not chkSize.Checked;
-  lblVideoHeight.Visible := not chkSize.Checked;
-  edtVideoWidth.Visible  := not chkSize.Checked;
-  edtVideoHeight.Visible := not chkSize.Checked;
-end;
-
-procedure TfrmFFUI.chkVideoSavePathClick(Sender: TObject);
-begin
-  lblSaveVideoPath.Visible := not chkVideoSavePath.Checked;
-  edtSaveVideoPath.Visible := not chkVideoSavePath.Checked;
-  btnSaveVideoPath.Visible := not chkVideoSavePath.Checked;
-end;
-
 procedure TfrmFFUI.btnVideoConvParamClick(Sender: TObject);
 begin
   pgcAll.ActivePage := tsConfig;
 end;
 
+{ 开始视频转换 }
 procedure TfrmFFUI.btnVideoStartConvClick(Sender: TObject);
 const
-  c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    -y "%s"';
-  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc -y "%s"';
-  c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    -y "%s"';
-  c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx265    -y "%s"';
-  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h265_nvenc -y "%s"';
-  c_strFFMPEGConv_GPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc -y "%s"';
+  c_strVideoSize           = ' -s %sx%s ';
+  c_strVideoInfo           = ' -metadata "title=%s" -metadata "artist=%s" -metadata "genre=%s" -metadata "comment=%s" ';
+  c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc %s %s -y "%s"';
+  c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    %s %s -y "%s"';
+  c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx265    %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h265_nvenc %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc %s %s -y "%s"';
 var
   strFFMPEGPath      : String;
   strFFMPGCommandLine: String;
@@ -543,36 +670,50 @@ var
   strTempCMDFileName : String;
   lstCMD             : TStringList;
   strExtFileName     : String;
-  procedure X86;
+  strVideoSize       : String;
+  strVideoInfo       : String;
+  procedure X86_CPU;
   begin
     case cbbConv.ItemIndex of
       0:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strOutPutFile]);
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
       1:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H265, [strFFMPEGPath, strInputFile, strOutPutFile]);
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
       2:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_FFLV, [strFFMPEGPath, strInputFile, strOutPutFile]);
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_FFLV, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
     end;
+  end;
+
+  procedure X64_CPU;
+  begin
+    X86_CPU;
   end;
 
   procedure X64_GPU;
   begin
     case cbbConv.ItemIndex of
       0:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H264, [strFFMPEGPath, strInputFile, strOutPutFile]);
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
       1:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strOutPutFile]);
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
       2:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_FFLV, [strFFMPEGPath, strInputFile, strOutPutFile]);
+        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_FFLV, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
     end;
   end;
 
 begin
   if lstFiles.Count <= 0 then
   begin
-    MessageBox(Handle, '必须先添加视频文件再转换', '系统提示：', MB_OK or MB_ICONWARNING);
+    MessageBox(Handle, '必须先添加视频文件再转换', c_strMsgTitle, MB_OK or MB_ICONWARNING);
     Exit;
   end;
+
+  if chkVideoSize.Checked then
+    strVideoSize := ''
+  else
+    strVideoSize := Format(c_strVideoSize, [edtVideoWidth.Text, edtVideoHeight.Text]);
+
+  strVideoInfo := Format(c_strVideoInfo, [edtTitle.Text, edtArtist.Text, edtGenre.Text, edtComment.Text]);
 
   strExtFileName := Ifthen(cbbConv.ItemIndex <> 2, '.mkv', '.flv');
   strFFMPEGPath  := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
@@ -581,17 +722,27 @@ begin
     for I := 0 to lstFiles.Count - 1 do
     begin
       Application.ProcessMessages;
-      strInputFile  := lstFiles.Items.Strings[I];
-      strOutPutFile := ChangeFileExt(strInputFile, strExtFileName);
-      if SameText(strOutPutFile, strInputFile) then
-        strOutPutFile := strInputFile + strExtFileName;
+      strInputFile := lstFiles.Items.Strings[I];
+      if chkVideoSavePath.Checked then
+      begin
+        strOutPutFile := ChangeFileExt(strInputFile, strExtFileName);
+        if SameText(strOutPutFile, strInputFile) then
+          strOutPutFile := strInputFile + strExtFileName;
+      end
+      else
+      begin
+        strOutPutFile := edtSaveVideoPath.Text + ChangeFileExt(ExtractFileName(strInputFile), strExtFileName);
+        if not System.SysUtils.DirectoryExists(ExtractFileDir(strOutPutFile)) then
+          System.SysUtils.ForceDirectories(ExtractFileDir(strOutPutFile));
+      end;
+
 {$IF Defined(CPUX86)}
-      X86;
+      X86_CPU;
 {$ELSE}
       if rgGPU.ItemIndex = 0 then
         X64_GPU
       else
-        X86;
+        X64_CPU;
 {$ENDIF}
       lstCMD.Add(strFFMPGCommandLine);
     end;

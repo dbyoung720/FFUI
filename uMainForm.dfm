@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsConv
+    ActivePage = tsConfig
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabHeight = 40
     TabOrder = 0
@@ -349,7 +349,7 @@ object frmFFUI: TfrmFFUI
           Height = 13
           Caption = #21098#36753#20449#24687#65306
         end
-        object chkSize: TCheckBox
+        object chkVideoSize: TCheckBox
           Left = 192
           Top = 26
           Width = 114
@@ -366,7 +366,7 @@ object frmFFUI: TfrmFFUI
           ParentFont = False
           State = cbChecked
           TabOrder = 0
-          OnClick = chkSizeClick
+          OnClick = chkVideoSizeClick
         end
         object edtVideoHeight: TEdit
           Left = 234
@@ -476,6 +476,7 @@ object frmFFUI: TfrmFFUI
           Anchors = [akRight, akBottom]
           Caption = #20445#23384
           TabOrder = 11
+          OnClick = btnSaveConvParamClick
         end
         object btnSaveConvParamAndStartConv: TButton
           Left = 816
@@ -485,6 +486,7 @@ object frmFFUI: TfrmFFUI
           Anchors = [akRight, akBottom]
           Caption = #20445#23384#24182#24320#22987#36716#25442
           TabOrder = 12
+          OnClick = btnSaveConvParamAndStartConvClick
         end
       end
     end
