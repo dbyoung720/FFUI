@@ -47,20 +47,33 @@ type
     btnDelVideoFile: TButton;
     tmrPlayVideo: TTimer;
     btnAddFolder: TButton;
-    lblConvTip: TLabel;
-    cbbConv: TComboBox;
     btnVideoStartConv: TButton;
+    btnVideoStopConv: TButton;
+    pnlVideoConv: TPanel;
+    grpVideoConv: TGroupBox;
     chkSize: TCheckBox;
     lblVideoWidth: TLabel;
     lblVideoHeight: TLabel;
-    edtVideoWidth: TEdit;
     edtVideoHeight: TEdit;
+    edtVideoWidth: TEdit;
     chkVideoSavePath: TCheckBox;
     lblSaveVideoPath: TLabel;
     btnSaveVideoPath: TButton;
     edtSaveVideoPath: TEdit;
-    btnVideoStopConv: TButton;
-    pnlVideoConv: TPanel;
+    lblConvTip: TLabel;
+    cbbConv: TComboBox;
+    btnVideoConvParam: TButton;
+    lblTitle: TLabel;
+    lblArtist: TLabel;
+    lblGenre: TLabel;
+    lblComment: TLabel;
+    edtTitle: TEdit;
+    edtArtist: TEdit;
+    edtGenre: TEdit;
+    edtComment: TEdit;
+    lbl1: TLabel;
+    btnSaveConvParam: TButton;
+    btnSaveConvParamAndStartConv: TButton;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -81,6 +94,7 @@ type
     procedure chkVideoSavePathClick(Sender: TObject);
     procedure btnVideoStartConvClick(Sender: TObject);
     procedure btnVideoStopConvClick(Sender: TObject);
+    procedure btnVideoConvParamClick(Sender: TObject);
   private
     FDOSCommand       : TDosCommand;
     FSynEdit_VideoInfo: TSynEdit;
@@ -89,6 +103,7 @@ type
     FFileStyle        : TFileStyle;
     FhPlayVideoWnd    : HWND;
     FbVideoConv       : Boolean;
+    procedure CreateSynEdit;
     procedure LoadConfig;
     procedure SaveConfig;
     procedure GetVideoFileInfo(const strFileName: string);
@@ -100,6 +115,7 @@ type
     procedure SendPlayUIKey(H: HWND; Key: Char);
     { 向 vlc 播放器发送键盘命令 }
     procedure SendPlayUIKey_vlc(H: HWND; Key: Char);
+    { TDosCommand.Stop 无法停止 CMD 进程，需手动杀死进程 }
     procedure KillProcessOfName(const strProcessName: string);
   end;
 
@@ -147,12 +163,8 @@ begin
   end;
 end;
 
-procedure TfrmFFUI.FormCreate(Sender: TObject);
+procedure TfrmFFUI.CreateSynEdit;
 begin
-  FDOSCommand              := TDosCommand.Create(nil);
-  FDOSCommand.OnNewLine    := DosCommandLine;
-  FDOSCommand.OnTerminated := DosCommandTerminated;
-
   FJSONHL := TSynJSONSyn.Create(Self);
 
   FSynEdit_VideoInfo                := TSynEdit.Create(tsInfo);
@@ -165,6 +177,7 @@ begin
   FSynEdit_VideoInfo.RightEdge      := tsInfo.Width;
   FSynEdit_VideoInfo.ScrollBars     := ssVertical;
   FSynEdit_VideoInfo.Highlighter    := FJSONHL;
+  FSynEdit_VideoInfo.ReadOnly       := True;
 
   FSynEdit_VideoConv                := TSynEdit.Create(pnlVideoConv);
   FSynEdit_VideoConv.Parent         := pnlVideoConv;
@@ -176,10 +189,22 @@ begin
   FSynEdit_VideoConv.RightEdge      := pnlVideoConv.Width;
   FSynEdit_VideoConv.ScrollBars     := ssVertical;
   FSynEdit_VideoConv.Highlighter    := FJSONHL;
+  FSynEdit_VideoConv.ReadOnly       := True;
+
+end;
+
+procedure TfrmFFUI.FormCreate(Sender: TObject);
+begin
+  FDOSCommand              := TDosCommand.Create(nil);
+  FDOSCommand.OnNewLine    := DosCommandLine;
+  FDOSCommand.OnTerminated := DosCommandTerminated;
+
+  CreateSynEdit;
 
   FbVideoConv            := False;
   FhPlayVideoWnd         := 0;
   pgcAll.ActivePageIndex := 0;
+
   LoadConfig;
 end;
 
@@ -306,8 +331,16 @@ begin
 end;
 
 procedure TfrmFFUI.mniOpenWebStreamClick(Sender: TObject);
+var
+  strWebStreamAddr: String;
 begin
-  FFileStyle := fsStream;
+  if not InputQuery('网络视频地址：', '地址：', strWebStreamAddr) then
+    Exit;
+
+  srchbxSelectVideoFile.Text := strWebStreamAddr;
+  FFileStyle                 := fsStream;
+  pgcAll.ActivePage          := tsPlay;
+  btnPlay.Click;
 end;
 
 procedure TfrmFFUI.rgUIClick(Sender: TObject);
@@ -486,6 +519,11 @@ begin
   lblSaveVideoPath.Visible := not chkVideoSavePath.Checked;
   edtSaveVideoPath.Visible := not chkVideoSavePath.Checked;
   btnSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+end;
+
+procedure TfrmFFUI.btnVideoConvParamClick(Sender: TObject);
+begin
+  pgcAll.ActivePage := tsConfig;
 end;
 
 procedure TfrmFFUI.btnVideoStartConvClick(Sender: TObject);

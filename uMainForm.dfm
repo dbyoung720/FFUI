@@ -46,10 +46,10 @@ object frmFFUI: TfrmFFUI
     TabOrder = 0
     TabWidth = 140
     object tsInfo: TTabSheet
-      Caption = #25991#20214#20449#24687'(Info)'
+      Caption = #20449#24687
     end
     object tsPlay: TTabSheet
-      Caption = #35270#39057#25773#25918'(Play)'
+      Caption = #25773#25918
       ImageIndex = 1
       object pnlButtonCommand: TPanel
         Left = 0
@@ -107,42 +107,11 @@ object frmFFUI: TfrmFFUI
       end
     end
     object tsConv: TTabSheet
-      Caption = #26684#24335#36716#25442'(Converter)'
+      Caption = #36716#25442
       ImageIndex = 2
       DesignSize = (
         984
         594)
-      object lblConvTip: TLabel
-        Left = 280
-        Top = 162
-        Width = 48
-        Height = 13
-        Caption = #36716#25442#20026#65306
-      end
-      object lblVideoWidth: TLabel
-        Left = 296
-        Top = 239
-        Width = 24
-        Height = 13
-        Caption = #23485#65306
-        Visible = False
-      end
-      object lblVideoHeight: TLabel
-        Left = 296
-        Top = 260
-        Width = 24
-        Height = 13
-        Caption = #23485#65306
-        Visible = False
-      end
-      object lblSaveVideoPath: TLabel
-        Left = 296
-        Top = 317
-        Width = 36
-        Height = 13
-        Caption = #36335#24452#65306
-        Visible = False
-      end
       object lstFiles: TListBox
         Left = 8
         Top = 12
@@ -179,101 +148,23 @@ object frmFFUI: TfrmFFUI
         TabOrder = 3
         OnClick = btnAddFolderClick
       end
-      object cbbConv: TComboBox
-        Left = 280
-        Top = 181
-        Width = 109
-        Height = 21
-        Style = csDropDownList
-        Font.Charset = GB2312_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = #23435#20307
-        Font.Style = []
-        ItemIndex = 0
-        ParentFont = False
-        TabOrder = 4
-        Text = 'H264 (*.MKV)'
-        Items.Strings = (
-          'H264 (*.MKV)'
-          'H265 (*.MKV)'
-          'Flash(*.FLV)')
-      end
       object btnVideoStartConv: TButton
         Left = 280
-        Top = 384
+        Top = 230
         Width = 109
-        Height = 81
+        Height = 49
         Caption = #36716#25442
-        TabOrder = 5
+        TabOrder = 4
         OnClick = btnVideoStartConvClick
-      end
-      object chkSize: TCheckBox
-        Left = 284
-        Top = 216
-        Width = 114
-        Height = 17
-        Caption = #20445#25345#35270#39057#23485#39640
-        Checked = True
-        State = cbChecked
-        TabOrder = 6
-        OnClick = chkSizeClick
-      end
-      object edtVideoWidth: TEdit
-        Left = 320
-        Top = 233
-        Width = 52
-        Height = 21
-        NumbersOnly = True
-        TabOrder = 7
-        Text = '800'
-        Visible = False
-      end
-      object edtVideoHeight: TEdit
-        Left = 320
-        Top = 259
-        Width = 52
-        Height = 21
-        NumbersOnly = True
-        TabOrder = 8
-        Text = '600'
-        Visible = False
-      end
-      object chkVideoSavePath: TCheckBox
-        Left = 284
-        Top = 294
-        Width = 114
-        Height = 17
-        Caption = #20445#23384#36335#24452#21516#25991#20214
-        Checked = True
-        State = cbChecked
-        TabOrder = 9
-        OnClick = chkVideoSavePathClick
-      end
-      object btnSaveVideoPath: TButton
-        Left = 336
-        Top = 315
-        Width = 36
-        Height = 20
-        Caption = #36873#25321
-        TabOrder = 10
-        Visible = False
-      end
-      object edtSaveVideoPath: TEdit
-        Left = 296
-        Top = 336
-        Width = 76
-        Height = 21
-        TabOrder = 11
-        Visible = False
       end
       object btnVideoStopConv: TButton
         Left = 280
-        Top = 471
+        Top = 285
         Width = 109
         Height = 57
         Caption = #20572#27490#36716#25442
-        TabOrder = 12
+        Enabled = False
+        TabOrder = 5
         OnClick = btnVideoStopConvClick
       end
       object pnlVideoConv: TPanel
@@ -288,19 +179,28 @@ object frmFFUI: TfrmFFUI
         Ctl3D = False
         ParentCtl3D = False
         ShowCaption = False
-        TabOrder = 13
+        TabOrder = 6
+      end
+      object btnVideoConvParam: TButton
+        Left = 280
+        Top = 167
+        Width = 109
+        Height = 57
+        Caption = #21442#25968#35774#32622
+        TabOrder = 7
+        OnClick = btnVideoConvParamClick
       end
     end
     object tsSept: TTabSheet
-      Caption = #20998#31163'(Separate)'
+      Caption = #20998#31163
       ImageIndex = 4
     end
     object tsMerge: TTabSheet
-      Caption = #21512#24182'(Merge)'
+      Caption = #21512#24182
       ImageIndex = 5
     end
     object tsLive: TTabSheet
-      Caption = #35270#39057#30452#25773'(Live)'
+      Caption = #30452#25773
       ImageIndex = 4
       DesignSize = (
         984
@@ -336,7 +236,7 @@ object frmFFUI: TfrmFFUI
       end
     end
     object tsConfig: TTabSheet
-      Caption = #37197#32622'(Config)'
+      Caption = #37197#32622
       ImageIndex = 6
       DesignSize = (
         984
@@ -352,7 +252,7 @@ object frmFFUI: TfrmFFUI
         ItemIndex = 0
         Items.Strings = (
           'FFMPEG(v4.2.0)'
-          'MPV (v2.0.0.0)'
+          'MPV (v2.0.0)'
           'VLC (v3.0.8)')
         TabOrder = 0
         OnClick = rgUIClick
@@ -371,6 +271,221 @@ object frmFFUI: TfrmFFUI
           'NO')
         TabOrder = 1
         OnClick = rgUIClick
+      end
+      object grpVideoConv: TGroupBox
+        Left = 12
+        Top = 131
+        Width = 961
+        Height = 237
+        Anchors = [akLeft, akTop, akRight]
+        Caption = #26684#24335#36716#25442#65306
+        TabOrder = 2
+        DesignSize = (
+          961
+          237)
+        object lblVideoWidth: TLabel
+          Left = 209
+          Top = 78
+          Width = 24
+          Height = 13
+          Caption = #23485#65306
+          Visible = False
+        end
+        object lblVideoHeight: TLabel
+          Left = 209
+          Top = 49
+          Width = 24
+          Height = 13
+          Caption = #23485#65306
+          Visible = False
+        end
+        object lblSaveVideoPath: TLabel
+          Left = 349
+          Top = 49
+          Width = 36
+          Height = 13
+          Caption = #36335#24452#65306
+          Visible = False
+        end
+        object lblConvTip: TLabel
+          Left = 24
+          Top = 26
+          Width = 48
+          Height = 13
+          Caption = #36716#25442#20026#65306
+        end
+        object lblTitle: TLabel
+          Left = 30
+          Top = 125
+          Width = 32
+          Height = 13
+          Caption = 'Title'#65306
+        end
+        object lblArtist: TLabel
+          Left = 30
+          Top = 153
+          Width = 38
+          Height = 13
+          Caption = 'Artist'#65306
+        end
+        object lblGenre: TLabel
+          Left = 30
+          Top = 181
+          Width = 41
+          Height = 13
+          Caption = 'Genre'#65306
+        end
+        object lblComment: TLabel
+          Left = 30
+          Top = 207
+          Width = 57
+          Height = 13
+          Caption = 'Comment'#65306
+        end
+        object lbl1: TLabel
+          Left = 24
+          Top = 103
+          Width = 60
+          Height = 13
+          Caption = #21098#36753#20449#24687#65306
+        end
+        object chkSize: TCheckBox
+          Left = 192
+          Top = 26
+          Width = 114
+          Height = 17
+          Caption = #20445#25345#35270#39057#23485#39640
+          Checked = True
+          Color = clBtnFace
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clBlack
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentColor = False
+          ParentFont = False
+          State = cbChecked
+          TabOrder = 0
+          OnClick = chkSizeClick
+        end
+        object edtVideoHeight: TEdit
+          Left = 234
+          Top = 74
+          Width = 47
+          Height = 21
+          NumbersOnly = True
+          TabOrder = 1
+          Text = '600'
+          Visible = False
+        end
+        object edtVideoWidth: TEdit
+          Left = 234
+          Top = 47
+          Width = 47
+          Height = 21
+          NumbersOnly = True
+          TabOrder = 2
+          Text = '800'
+          Visible = False
+        end
+        object chkVideoSavePath: TCheckBox
+          Left = 332
+          Top = 26
+          Width = 114
+          Height = 17
+          Caption = #20445#23384#36335#24452#21516#25991#20214
+          Checked = True
+          State = cbChecked
+          TabOrder = 3
+          OnClick = chkVideoSavePathClick
+        end
+        object btnSaveVideoPath: TButton
+          Left = 589
+          Top = 46
+          Width = 36
+          Height = 23
+          Caption = #36873#25321
+          TabOrder = 4
+          Visible = False
+        end
+        object edtSaveVideoPath: TEdit
+          Left = 385
+          Top = 47
+          Width = 205
+          Height = 21
+          TabOrder = 5
+          Visible = False
+        end
+        object cbbConv: TComboBox
+          Left = 30
+          Top = 45
+          Width = 109
+          Height = 21
+          Style = csDropDownList
+          Font.Charset = GB2312_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = #23435#20307
+          Font.Style = []
+          ItemIndex = 0
+          ParentFont = False
+          TabOrder = 6
+          Text = 'H264 (*.MKV)'
+          Items.Strings = (
+            'H264 (*.MKV)'
+            'H265 (*.MKV)'
+            'Flash(*.FLV)')
+        end
+        object edtTitle: TEdit
+          Left = 84
+          Top = 123
+          Width = 203
+          Height = 21
+          TabOrder = 7
+          Text = 'dbyoung'
+        end
+        object edtArtist: TEdit
+          Left = 84
+          Top = 150
+          Width = 203
+          Height = 21
+          TabOrder = 8
+          Text = 'FFUI 2.0'
+        end
+        object edtGenre: TEdit
+          Left = 84
+          Top = 177
+          Width = 203
+          Height = 21
+          TabOrder = 9
+          Text = 'Video'
+        end
+        object edtComment: TEdit
+          Left = 84
+          Top = 204
+          Width = 203
+          Height = 21
+          TabOrder = 10
+          Text = 'dbyoung@sina.com'
+        end
+        object btnSaveConvParam: TButton
+          Left = 816
+          Top = 169
+          Width = 135
+          Height = 25
+          Anchors = [akRight, akBottom]
+          Caption = #20445#23384
+          TabOrder = 11
+        end
+        object btnSaveConvParamAndStartConv: TButton
+          Left = 816
+          Top = 200
+          Width = 135
+          Height = 25
+          Anchors = [akRight, akBottom]
+          Caption = #20445#23384#24182#24320#22987#36716#25442
+          TabOrder = 12
+        end
       end
     end
   end
@@ -405,14 +520,14 @@ object frmFFUI: TfrmFFUI
     Filter = 
       #35270#39057#25991#20214'(*.AVI;*.MP4;*.MKV;*.MOV;*.RMVB;*.VOB)|*.AVI;*.MP4;*.MKV;*.M' +
       'OV;*.RMVB;*.VOB'
-    Left = 140
-    Top = 175
+    Left = 304
+    Top = 623
   end
   object tmrPlay: TTimer
     Enabled = False
     Interval = 100
-    Left = 140
-    Top = 231
+    Left = 76
+    Top = 623
   end
   object pmOpen: TPopupMenu
     AutoHotkeys = maManual
@@ -433,8 +548,8 @@ object frmFFUI: TfrmFFUI
   end
   object pmStatCopy: TPopupMenu
     AutoHotkeys = maManual
-    Left = 136
-    Top = 303
+    Left = 228
+    Top = 623
     object mniCopyDosCommand: TMenuItem
       Caption = #22797#21046#21040#21098#20999#26495
       OnClick = mniCopyDosCommandClick
@@ -444,7 +559,7 @@ object frmFFUI: TfrmFFUI
     Enabled = False
     Interval = 100
     OnTimer = tmrPlayVideoTimer
-    Left = 136
-    Top = 385
+    Left = 152
+    Top = 623
   end
 end
