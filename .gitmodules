@@ -1,3 +1,6 @@
 [submodule "vcl/SynEdit"]
 	path = vcl/SynEdit
 	url = https://github.com/SynEdit/SynEdit.git
+[submodule "vcl/DOSCommand"]
+	path = vcl/DOSCommand
+	url = https://github.com/TurboPack/DOSCommand.git
