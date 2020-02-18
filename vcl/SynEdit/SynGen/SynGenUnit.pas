@@ -154,7 +154,7 @@ type
     IniFile: string;
     OutFile: TextFile;
     Sensitivity: Boolean;
-    LexFileContents: string;
+    LexFileContents: UnicodeString;
     Lex: TGenLex;
     KeyList: TList;
     SetList: TList;
@@ -189,10 +189,13 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.DFM}
 
 uses
-  UITypes, StrUtils, Registry, HashTableGen;
+{$IFDEF SYN_COMPILER_6_UP}
+  StrUtils,
+{$ENDIF}
+  Registry, HashTableGen;
 
 const
   BoolStrs: array[Boolean] of string = ('False', 'True'); // Do not localize
@@ -221,7 +224,7 @@ begin
     Result := '';
 end;
 
-function StuffString(const Value: string): string;
+function StuffString(const Value: UnicodeString): UnicodeString;
 var
   i: Integer;
 begin
@@ -235,7 +238,7 @@ begin
   end;
 end;
 
-function FirstLetterCap(S: string): string;
+function FirstLetterCap(S: UnicodeString): UnicodeString;
 begin
   Result := SynWideLowerCase(S);
   if Length(Result) > 0 then
@@ -249,7 +252,7 @@ begin
 end;
 {$ENDIF}
 
-function ToAlphaNum(S: string): string;
+function ToAlphaNum(S: UnicodeString): UnicodeString;
 var
   c: Char;
 begin
@@ -268,7 +271,7 @@ begin
   Result := S;
 end;
 
-function IsASCIIAlphaNum(S: string): Boolean;
+function IsASCIIAlphaNum(S: UnicodeString): Boolean;
 var
   i: Integer;
 begin
@@ -364,7 +367,11 @@ end;
 function TFrmMain.PerformFileOpen: Boolean;
 var
   UserName: PChar;
+{$IFDEF SYN_COMPILER_5_UP}
   Count: Cardinal;
+{$ELSE}
+  Count: Integer;
+{$ENDIF}
 begin
   if OpenDialog.Execute then
   begin
@@ -830,15 +837,26 @@ begin
       ' +----------------------------------------------------------------------------+}');
   end;
   Writeln(OutFile);
+  Writeln(OutFile, '{$IFNDEF Q' + UpperCase(Uname) + '}');
   Writeln(OutFile, 'unit ' + Uname + ';');
+  Writeln(OutFile, '{$ENDIF}');
+  Writeln(OutFile);
+  Writeln(OutFile, '{$I SynEdit.inc}');
   Writeln(OutFile);
   Writeln(OutFile, 'interface');
   Writeln(OutFile);
   Writeln(OutFile, 'uses');
+  Writeln(OutFile, '{$IFDEF SYN_CLX}');
+  Writeln(OutFile, '  QGraphics,');
+  Writeln(OutFile, '  QSynEditTypes,');
+  Writeln(OutFile, '  QSynEditHighlighter,');
+  Writeln(OutFile, '  QSynUnicode,');
+  Writeln(OutFile, '{$ELSE}');
   Writeln(OutFile, '  Graphics,');
   Writeln(OutFile, '  SynEditTypes,');
   Writeln(OutFile, '  SynEditHighlighter,');
   Writeln(OutFile, '  SynUnicode,');
+  Writeln(OutFile, '{$ENDIF}');
   Writeln(OutFile, '  SysUtils,');
   Writeln(OutFile, '  Classes;');
   Writeln(OutFile);
@@ -1200,11 +1218,11 @@ begin
       + 'Proc;');
   end;
   Writeln(OutFile, '  protected');
-  Writeln(OutFile, '    function GetSampleSource: string; override;');
+  Writeln(OutFile, '    function GetSampleSource: UnicodeString; override;');
   Writeln(OutFile, '    function IsFilterStored: Boolean; override;');
   Writeln(OutFile, '  public');
   Writeln(OutFile, '    constructor Create(AOwner: TComponent); override;');
-  Writeln(OutFile, '    class function GetFriendlyLanguageName: string; override;');
+  Writeln(OutFile, '    class function GetFriendlyLanguageName: UnicodeString; override;');  
   Writeln(OutFile, '    class function GetLanguageName: string; override;');
   Writeln(OutFile, '    function GetRange: Pointer; override;');
   Writeln(OutFile, '    procedure ResetRange; override;');
@@ -1213,7 +1231,7 @@ begin
     '    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes; override;');
   Writeln(OutFile, '    function GetEol: Boolean; override;');
   if ChkGetKeyWords.Checked then
-    Writeln(OutFile, '    function GetKeyWords(TokenKind: Integer): string; override;');
+    Writeln(OutFile, '    function GetKeyWords(TokenKind: Integer): UnicodeString; override;');
   Writeln(OutFile, '    function GetTokenID: TtkTokenKind;');
   Writeln(OutFile,
     '    function GetTokenAttribute: TSynHighlighterAttributes; override;');
@@ -1241,7 +1259,11 @@ begin
   Writeln(OutFile, 'implementation');
   Writeln(OutFile);
   Writeln(OutFile, 'uses');
+  Writeln(OutFile, '{$IFDEF SYN_CLX}');
+  Writeln(OutFile, '  QSynEditStrConst;');
+  Writeln(OutFile, '{$ELSE}');
   Writeln(OutFile, '  SynEditStrConst;');
+  Writeln(OutFile, '{$ENDIF}');
   Writeln(OutFile);
   if (CboFilter.ItemIndex = -1) or (CboLangName.ItemIndex = -1) then
   begin
@@ -1682,7 +1704,7 @@ begin
 
   if ChkGetKeyWords.Checked then
   begin
-    Writeln(OutFile, 'function ' + LexName + '.GetKeyWords(TokenKind: Integer): string;');
+    Writeln(OutFile, 'function ' + LexName + '.GetKeyWords(TokenKind: Integer): UnicodeString;');
     Writeln(OutFile, 'begin');
     TempStringList := TStringList.Create;
     try
@@ -1761,7 +1783,7 @@ begin
   Writeln(OutFile, 'end;');  
   Writeln(OutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.GetSampleSource: string;');
+  Writeln(OutFile, 'function ' + LexName + '.GetSampleSource: UnicodeString;');
   Writeln(OutFile, 'begin');
   if (SampleSourceList.Count = 0) then
   begin
@@ -1792,7 +1814,7 @@ begin
   Writeln(OutFile, 'end;');
   Writeln(OutFile);
 
-  Writeln(OutFile, 'class function ' + LexName + '.GetFriendlyLanguageName: string;');
+  Writeln(OutFile, 'class function ' + LexName + '.GetFriendlyLanguageName: UnicodeString;');
   Writeln(OutFile, 'begin');
   Writeln(OutFile, '  Result := ' + GetFriendlyLangName + ';');
   Writeln(OutFile, 'end;');

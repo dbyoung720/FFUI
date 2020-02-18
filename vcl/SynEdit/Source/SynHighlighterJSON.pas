@@ -31,6 +31,8 @@ located at http://SynEdit.SourceForge.net
 
 unit SynHighlighterJSON;
 
+{$I SynEdit.Inc}
+
 interface
 
 uses
@@ -74,20 +76,20 @@ type
     procedure SymbolProc;
     procedure UnknownProc;
   protected
-    function GetSampleSource: string; override;
+    function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
     class function GetLanguageName: string; override;
-    class function GetFriendlyLanguageName: string; override;
+    class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -110,6 +112,7 @@ implementation
 
 uses
   SynEditStrConst;
+
 
 { TSynJSONSyn }
 
@@ -337,7 +340,12 @@ end;
 
 procedure TSynJSONSyn.StringProc;
 
-  function IsHex(Digit: Char): Boolean;
+  function IsHex(Digit: AnsiChar): Boolean; overload;
+  begin 
+    Result := CharInSet(Digit, ['0'..'9', 'A'..'F', 'a'..'f']); 
+  end; 
+
+  function IsHex(Digit: WideChar): Boolean; overload;
   begin
     Result := CharInSet(Digit, ['0'..'9', 'A'..'F', 'a'..'f']);
   end;
@@ -390,7 +398,7 @@ end;
 
 procedure TSynJSONSyn.Next;
 begin
-  fTokenPos := Run;
+  FTokenPos := Run;
   case FLine[Run] of
     #0: NullProc;
     #1..#9, #11, #12, #14..#32: SpaceProc;
@@ -413,7 +421,7 @@ begin
   inherited;
 end;
 
-function TSynJSONSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynJSONSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
     SYN_ATTR_KEYWORD: Result := FReservedAttri;
@@ -428,7 +436,7 @@ end;
 
 function TSynJSONSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynJSONSyn.GetRange: Pointer;
@@ -458,7 +466,7 @@ begin
   end;
 end;
 
-function TSynJSONSyn.GetTokenKind: integer;
+function TSynJSONSyn.GetTokenKind: Integer;
 begin
   Result := Ord(FTokenID);
 end;
@@ -483,7 +491,7 @@ begin
   Result := SYNS_LangJSON;
 end;
 
-function TSynJSONSyn.GetSampleSource: string;
+function TSynJSONSyn.GetSampleSource: UnicodeString;
 begin
   Result :=
     '{'#13#10 +
@@ -514,11 +522,13 @@ begin
     '}';
 end;
 
-class function TSynJSONSyn.GetFriendlyLanguageName: string;
+class function TSynJSONSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangJSON;
 end;
 
 initialization
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynJSONSyn);
+{$ENDIF}
 end.

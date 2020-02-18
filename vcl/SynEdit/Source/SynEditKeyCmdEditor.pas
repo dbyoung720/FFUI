@@ -35,13 +35,18 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNEDITKEYCMDEDITOR}
 unit SynEditKeyCmdEditor;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   Messages,
   Graphics,
@@ -102,9 +107,6 @@ implementation
 
 {$R *.dfm}
 
-uses
-  UITypes;
-
 { TSynEditKeystrokeEditorForm }
 
 procedure TSynEditKeystrokeEditorForm.SetCommand(const Value: TSynEditorCommand);
@@ -140,7 +142,7 @@ end;
 
 function TSynEditKeystrokeEditorForm.GetCommand: TSynEditorCommand;
 var
-  NewCmd: Integer;
+  NewCmd: longint;
 begin
   cmbCommand.ItemIndex := cmbCommand.Items.IndexOf(cmbCommand.Text);
   if cmbCommand.ItemIndex <> -1 then
@@ -186,7 +188,7 @@ begin
 //This would be better if componentized, but oh well...
   WorkStr := AnsiUppercase(Copy(cmbCommand.Text, 1, cmbCommand.SelStart) + Key);
   i := 0;
-  While i < cmbCommand.Items.Count do
+  while i < cmbCommand.Items.Count do
   begin
     if pos(WorkStr, AnsiUppercase(cmbCommand.Items[i])) = 1 then
     begin
@@ -194,8 +196,10 @@ begin
       cmbCommand.SelStart := length(WorkStr);
       cmbCommand.SelLength := Length(cmbCommand.Text) - cmbCommand.SelStart;
       Key := #0;
-      break;
-    end else inc(i);
+      Break;
+    end
+    else
+      Inc(i);
   end;
 end;
 

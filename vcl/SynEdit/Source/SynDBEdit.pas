@@ -36,13 +36,18 @@ located at http://SynEdit.SourceForge.net
 Known Issues:
 -------------------------------------------------------------------------------}
 
+{$IFNDEF QSYNDBEDIT}
 unit SynDBEdit;
+{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
+{$IFNDEF SYN_COMPILER_3_UP}
+  DbTables,
+{$ENDIF}
   Windows,
   Messages,
   Controls,
@@ -57,8 +62,8 @@ type
   TCustomDBSynEdit = class(TCustomSynEdit)
   private
     FDataLink: TFieldDataLink;
-    fEditing: boolean;
-    FBeginEdit: boolean;
+    FEditing: Boolean;
+    FBeginEdit: Boolean;
     FLoadData: TNotifyEvent;
     procedure DataChange(Sender: TObject);
     procedure EditingChange(Sender: TObject);
@@ -74,16 +79,16 @@ type
     procedure CMExit(var Msg: TCMExit); message CM_EXIT;
     procedure CMGetDataLink(var Msg: TMessage); message CM_GETDATALINK;
   protected
-    function GetReadOnly: boolean; override;
+    function GetReadOnly: Boolean; override;
     procedure Loaded; override;
     procedure DoChange; override;
-    procedure SetReadOnly(Value: boolean); override;
+    procedure SetReadOnly(Value: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
     procedure ExecuteCommand(Command: TSynEditorCommand; AChar: WideChar;
-      Data: pointer); override;
+      Data: Pointer); override;
     procedure LoadMemo;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
@@ -91,7 +96,7 @@ type
     property DataField: string read GetDataField write SetDataField;
     property DataSource: TDataSource read GetDataSource write SetDataSource;
     property Field: TField read GetField;
-    property OnLoadData: TNotifyEvent read fLoadData write fLoadData;
+    property OnLoadData: TNotifyEvent read FLoadData write FLoadData;
   end;
 
   TDBSynEdit = class(TCustomDBSynEdit)
@@ -103,10 +108,11 @@ type
     // TCustomDBSynEdit events
     property OnLoadData;
     // inherited properties
-    property ActiveLineColor;
     property Align;
+  {$IFDEF SYN_COMPILER_4_UP}
     property Anchors;
     property Constraints;
+  {$ENDIF}
     property Color;
     property Ctl3D;
     property Enabled;
@@ -129,7 +135,9 @@ type
     property OnDblClick;
     property OnDragDrop;
     property OnDragOver;
+  {$IFDEF SYN_COMPILER_4_UP}
     property OnEndDock;
+  {$ENDIF}
     property OnEndDrag;
     property OnEnter;
     property OnExit;
@@ -139,7 +147,9 @@ type
     property OnMouseDown;
     property OnMouseMove;
     property OnMouseUp;
+  {$IFDEF SYN_COMPILER_4_UP}
     property OnStartDock;
+  {$ENDIF}
     property OnStartDrag;
     // TCustomSynEdit properties
     property BookMarkOptions;
@@ -222,7 +232,7 @@ end;
 
 procedure TCustomDBSynEdit.CMGetDataLink(var Msg: TMessage);
 begin
-  Msg.Result := Integer(FDataLink);
+  Msg.Result := LRESULT(FDataLink);
 end;
 
 procedure TCustomDBSynEdit.DataChange(Sender: TObject);
@@ -234,9 +244,11 @@ begin
       FBeginEdit := False;
       Exit;
     end;
+{$IFDEF SYN_COMPILER_3_UP}
     if FDataLink.Field.IsBlob then
       LoadMemo
     else
+{$ENDIF}
       Text := FDataLink.Field.Text;
     if Assigned(FLoadData) then
       FLoadData(Self);
@@ -268,7 +280,7 @@ begin
 end;
 
 procedure TCustomDBSynEdit.ExecuteCommand(Command: TSynEditorCommand;
-  AChar: WideChar; Data: pointer);
+  AChar: WideChar; Data: Pointer);
 begin
   // cancel on [ESC]
   if (Command = ecChar) and (AChar = #27) then
@@ -308,13 +320,24 @@ begin
 end;
 
 procedure TCustomDBSynEdit.LoadMemo;
+{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
+{$ELSE}
+var
+  BlobStream: TBlobStream;
+  BlobField: TBlobField;
+{$ENDIF}
 begin
   try
+{$IFDEF SYN_COMPILER_3_UP}
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmRead);
+{$ELSE}
+    BlobField := FDataLink.Field as TBlobField;
+    BlobStream := TBlobStream.Create(BlobField, bmRead);
+{$ENDIF}
     Lines.BeginUpdate;
-    Lines.LoadFromStream(BlobStream, TEncoding.Default);
+    Lines.LoadFromStream(BlobStream{$IFDEF UNICODE}, TEncoding.Default{$ENDIF});
     Lines.EndUpdate;
     BlobStream.Free;
     Modified := False;
@@ -357,10 +380,12 @@ end;
 
 procedure TCustomDBSynEdit.SetEditing(Value: Boolean);
 begin
-  if fEditing <> Value then
+  if FEditing <> Value then
   begin
-    fEditing := Value;
+    FEditing := Value;
+{$IFDEF SYN_COMPILER_3_UP}
     if not Assigned(FDataLink.Field) or not FDataLink.Field.IsBlob then
+{$ENDIF}
       FDataLink.Reset;
   end;
 end;
@@ -371,17 +396,20 @@ begin
 end;
 
 procedure TCustomDBSynEdit.UpdateData(Sender: TObject);
+{$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
+{$ENDIF}
 begin
+{$IFDEF SYN_COMPILER_3_UP}
   if FDataLink.Field.IsBlob then
   begin
     BlobStream := FDataLink.DataSet.CreateBlobStream(FDataLink.Field, bmWrite);
     Lines.SaveToStream(BlobStream);
     BlobStream.Free;
   end else
+{$ENDIF}
     FDataLink.Field.AsString := Text;
 end;
 
 end.
-
