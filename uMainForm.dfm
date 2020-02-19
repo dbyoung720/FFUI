@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsInfo
+    ActivePage = tsSept
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabHeight = 40
     TabOrder = 0
@@ -195,11 +195,11 @@ object frmFFUI: TfrmFFUI
       Caption = #20998#31163
       ImageIndex = 4
       object lbl2: TLabel
-        Left = 312
+        Left = 299
         Top = 45
-        Width = 39
+        Width = 52
         Height = 13
-        Caption = #38899#39057#65306
+        Caption = #38899#39057#27969#65306
         Font.Charset = GB2312_CHARSET
         Font.Color = clBlue
         Font.Height = -13
@@ -208,11 +208,11 @@ object frmFFUI: TfrmFFUI
         ParentFont = False
       end
       object lbl3: TLabel
-        Left = 28
+        Left = 17
         Top = 45
-        Width = 39
+        Width = 52
         Height = 13
-        Caption = #35270#39057#65306
+        Caption = #35270#39057#27969#65306
         Font.Charset = GB2312_CHARSET
         Font.Color = clBlue
         Font.Height = -13
@@ -221,11 +221,11 @@ object frmFFUI: TfrmFFUI
         ParentFont = False
       end
       object lbl4: TLabel
-        Left = 596
+        Left = 590
         Top = 45
-        Width = 39
+        Width = 52
         Height = 13
-        Caption = #23383#24149#65306
+        Caption = #23383#24149#27969#65306
         Font.Charset = GB2312_CHARSET
         Font.Color = clBlue
         Font.Height = -13
@@ -233,7 +233,7 @@ object frmFFUI: TfrmFFUI
         Font.Style = []
         ParentFont = False
       end
-      object lbl5: TLabel
+      object lblVideoDepartTip: TLabel
         Left = 20
         Top = 12
         Width = 90
@@ -362,7 +362,7 @@ object frmFFUI: TfrmFFUI
         Font.Style = []
         ItemIndex = 0
         Items.Strings = (
-          'YES ('#38656#35201' NVIDIA '#26174#21345#65292'X64'#24179#21488')'
+          'YES(NV GF1050'#20197#19978#26174#21345','#39537#21160'>436.15,X64'#24179#21488')'
           'NO')
         ParentFont = False
         TabOrder = 1
@@ -370,7 +370,7 @@ object frmFFUI: TfrmFFUI
       end
       object grpVideoConv: TGroupBox
         Left = 12
-        Top = 131
+        Top = 134
         Width = 961
         Height = 237
         Anchors = [akLeft, akTop, akRight]
@@ -625,6 +625,18 @@ object frmFFUI: TfrmFFUI
           Visible = False
           OnInvokeSearch = btnDepartPathClick
         end
+      end
+      object lnklblHelpAccelGPU: TLinkLabel
+        Left = 844
+        Top = 89
+        Width = 113
+        Height = 17
+        Anchors = [akTop, akRight]
+        Caption = 
+          '<a href="https://developer.nvidia.com/video-encode-decode-gpu-su' +
+          'pport-matrix">NVIDIA GPU '#21152#36895#24110#21161'</a>'
+        TabOrder = 4
+        OnLinkClick = lnklblHelpAccelGPULinkClick
       end
     end
   end

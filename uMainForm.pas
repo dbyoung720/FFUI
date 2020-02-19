@@ -3,7 +3,7 @@ unit uMainForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.PsAPI, System.SysUtils, System.StrUtils, System.Variants, System.Classes, System.IniFiles, System.IOUtils, System.Types,
+  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.PsAPI, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Variants, System.Classes, System.IniFiles, System.IOUtils, System.Types, System.JSON,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl,
   {第三方控件}
   SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI;
@@ -11,6 +11,9 @@ uses
 type
   { 打开文件方式：文件/文件夹/网络视频流地址 }
   TFileStyle = (fsFile, fsFolder, fsStream);
+
+  { 视频操作状态 }
+  TStatStyle = (ssBlank, ssInfo, ssPaly, ssConv, ssDepart, ssMerge, ssLine);
 
 type
   TfrmFFUI = class(TForm)
@@ -79,12 +82,13 @@ type
     lstDepartAudio: TListBox;
     lstDepartSubTitle: TListBox;
     btnDepart: TButton;
-    lbl5: TLabel;
+    lblVideoDepartTip: TLabel;
     grpDepartPath: TGroupBox;
     chkDepartPath: TCheckBox;
     lblDepartPath: TLabel;
     srchbxVideoConvSavePath: TSearchBox;
     srchbxDepartVideoSavePath: TSearchBox;
+    lnklblHelpAccelGPU: TLinkLabel;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -111,14 +115,16 @@ type
     procedure btnSaveVideoPathClick(Sender: TObject);
     procedure chkDepartPathClick(Sender: TObject);
     procedure btnDepartPathClick(Sender: TObject);
+    procedure lnklblHelpAccelGPULinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
   private
     FDOSCommand       : TDosCommand;
     FSynEdit_VideoInfo: TSynEdit;
     FSynEdit_VideoConv: TSynEdit;
+    FSynEdit_VideoDept: TSynEdit;
     FJSONHL           : TSynJSONSyn;
     FFileStyle        : TFileStyle;
     FhPlayVideoWnd    : HWND;
-    FbVideoConv       : Boolean;
+    FStatStyle        : TStatStyle;
     { 创建语法高亮的 SynEdit 控件 }
     procedure CreateSynEdit;
     { 加载系统参数 }
@@ -127,7 +133,9 @@ type
     procedure SaveConfigProc;
     function SaveConfig: Boolean;
     { 获取视频文件格式信息 }
-    procedure GetVideoFileInfo(const strFileName: string);
+    procedure GetVideoFileInfo(const strVideoFileName: string);
+    { 获取视频文件，视频流、音频流、字幕流信息 }
+    procedure GetVideoDepartInfo(const strVideoFileName: string);
     { 视频转换结束 }
     procedure DosCommandTerminated(Sender: TObject);
     { Dos 命令行运行返回的字符串 }
@@ -346,6 +354,11 @@ begin
   srchbxVideoConvSavePath.Visible := not chkVideoSavePath.Checked;
 end;
 
+procedure TfrmFFUI.lnklblHelpAccelGPULinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
+begin
+  ShellExecute(0, nil, PChar(Link), nil, nil, 1);
+end;
+
 { 创建语法高亮的 SynEdit 控件 }
 procedure TfrmFFUI.CreateSynEdit;
 begin
@@ -374,6 +387,19 @@ begin
   FSynEdit_VideoConv.ScrollBars     := ssVertical;
   FSynEdit_VideoConv.Highlighter    := FJSONHL;
   FSynEdit_VideoConv.ReadOnly       := True;
+
+  FSynEdit_VideoDept                := TSynEdit.Create(tsSept);
+  FSynEdit_VideoDept.Parent         := tsSept;
+  FSynEdit_VideoDept.Align          := alClient;
+  FSynEdit_VideoDept.BorderStyle    := bsNone;
+  FSynEdit_VideoDept.Gutter.Visible := False;
+  FSynEdit_VideoDept.Font.Name      := '宋体';
+  FSynEdit_VideoDept.Font.Size      := 12;
+  FSynEdit_VideoDept.RightEdge      := pnlVideoConv.Width;
+  FSynEdit_VideoDept.ScrollBars     := ssVertical;
+  FSynEdit_VideoDept.Highlighter    := FJSONHL;
+  FSynEdit_VideoDept.ReadOnly       := True;
+  FSynEdit_VideoDept.Visible        := False;
 end;
 
 procedure TfrmFFUI.FormCreate(Sender: TObject);
@@ -385,7 +411,7 @@ begin
   CreateSynEdit;
 
   { 初始化变量 }
-  FbVideoConv            := False;
+  FStatStyle             := ssBlank;
   FhPlayVideoWnd         := 0;
   pgcAll.ActivePageIndex := 0;
 
@@ -420,24 +446,41 @@ end;
 { Dos 命令行运行返回的字符串 }
 procedure TfrmFFUI.DosCommandLine(ASender: TObject; const ANewLine: string; AOutputType: TOutputType);
 begin
-  if FbVideoConv then
+  if FStatStyle = ssConv then
   begin
     FSynEdit_VideoConv.Lines.Insert(0, ANewLine);
   end
-  else
+  else if FStatStyle = ssInfo then
   begin
     FSynEdit_VideoInfo.Lines.Add(ANewLine);
+  end
+  else if FStatStyle = ssDepart then
+  begin
+    FSynEdit_VideoDept.Lines.Add(ANewLine);
   end;
 end;
 
 { 视频转换结束 }
 procedure TfrmFFUI.DosCommandTerminated(Sender: TObject);
+var
+  jsn    : TJSONObject;
+  strJson: String;
 begin
-  if FbVideoConv then
+  if FStatStyle = ssConv then
   begin
-    FbVideoConv               := False;
+    FStatStyle                := ssBlank;
     btnVideoStartConv.Enabled := True;
     btnVideoStopConv.Enabled  := False;
+  end
+  else if FStatStyle = ssDepart then
+  begin
+    strJson                            := StringReplace(FSynEdit_VideoDept.Lines.Text, #$D#$A, '', [rfReplaceAll]);
+    jsn                                := TJSONObject.ParseJSONValue(strJson) as TJSONObject;
+    if jsn.Count > 0 then
+    begin
+
+    end;
+    FSynEdit_VideoDept.Lines.Clear;
   end;
 end;
 
@@ -445,19 +488,6 @@ end;
 procedure TfrmFFUI.mniCopyDosCommandClick(Sender: TObject);
 begin
   Clipboard.AsText := statInfo.SimpleText;
-end;
-
-{ 获取视频文件格式信息 }
-procedure TfrmFFUI.GetVideoFileInfo(const strFileName: string);
-var
-  strFFMPEGPath: string;
-begin
-  strFFMPEGPath := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
-  SetDllDirectory(PChar(strFFMPEGPath));
-  FSynEdit_VideoInfo.Lines.Clear;
-  FDOSCommand.CommandLine := Format('"%s\ffprobe.exe" -hide_banner -v quiet -show_streams -print_format json "%s"', [strFFMPEGPath, strFileName]);
-  FDOSCommand.Execute;
-  statInfo.SimpleText := FDOSCommand.CommandLine;
 end;
 
 { 查询目录下的所有视频文件 }
@@ -497,6 +527,41 @@ begin
   end;
 end;
 
+{ 获取视频文件格式信息 }
+procedure TfrmFFUI.GetVideoFileInfo(const strVideoFileName: string);
+var
+  strFFMPEGPath: string;
+begin
+  FStatStyle    := ssInfo;
+  strFFMPEGPath := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  SetDllDirectory(PChar(strFFMPEGPath));
+  FSynEdit_VideoInfo.Lines.Clear;
+  FDOSCommand.CommandLine := Format('"%s\ffprobe.exe" -hide_banner -v quiet -show_streams -print_format json "%s"', [strFFMPEGPath, strVideoFileName]);
+  FDOSCommand.Execute;
+  statInfo.SimpleText := FDOSCommand.CommandLine;
+end;
+
+{ 获取视频文件，视频流、音频流、字幕流信息 }
+procedure TfrmFFUI.GetVideoDepartInfo(const strVideoFileName: string);
+var
+  strFFMPEGPath: string;
+begin
+  lblVideoDepartTip.Caption := Format('%s 文件包含：', [ExtractFileName(strVideoFileName)]);
+  while True do
+  begin
+    Application.ProcessMessages;
+    if not FDOSCommand.IsRunning then
+      Break;
+  end;
+
+  FStatStyle    := ssDepart;
+  strFFMPEGPath := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  SetDllDirectory(PChar(strFFMPEGPath));
+  FSynEdit_VideoDept.Clear;
+  FDOSCommand.CommandLine := Format('"%s\ffprobe" -hide_banner -v quiet -show_streams -select_streams v -print_format json "%s"', [strFFMPEGPath, strVideoFileName]);
+  FDOSCommand.Execute;
+end;
+
 { 打开文件 }
 procedure TfrmFFUI.mniOpenFileClick(Sender: TObject);
 begin
@@ -506,7 +571,13 @@ begin
   FFileStyle                 := fsFile;
   srchbxSelectVideoFile.Text := dlgOpenVideoFile.FileName;
   pgcAll.ActivePage          := tsInfo;
+
+  { 获取视频文件格式信息 }
   GetVideoFileInfo(dlgOpenVideoFile.FileName);
+
+  { 获取视频文件，视频流、音频流、字幕流信息 }
+  GetVideoDepartInfo(dlgOpenVideoFile.FileName);
+
   lstFiles.Items.Add(dlgOpenVideoFile.FileName);
 end;
 
@@ -613,6 +684,7 @@ begin
     Exit;
   end;
 
+  FStatStyle := ssPaly;
   if FFileStyle = fsFile then
     PlayVideoFile(srchbxSelectVideoFile.Text)
   else if FFileStyle = fsFolder then
@@ -811,7 +883,7 @@ begin
     lstCMD.SaveToFile(strTempCMDFileName);
     FDOSCommand.CommandLine := strTempCMDFileName;
     FDOSCommand.Execute;
-    FbVideoConv := True;
+    FStatStyle := ssConv;
     FSynEdit_VideoConv.Lines.Clear;
     btnVideoStartConv.Enabled := False;
     btnVideoStopConv.Enabled  := True;
@@ -858,7 +930,7 @@ begin
   { TDosCommand.Stop 无法停止 CMD 进程，需手动杀死进程 }
   KillProcessOfName(ExtractFilePath(ParamStr(0)) + 'video\ffmpeg\ffmpeg.exe');
 
-  FbVideoConv               := False;
+  FStatStyle                := ssBlank;
   btnVideoStartConv.Enabled := True;
   btnVideoStopConv.Enabled  := False;
   FDOSCommand.Stop;
