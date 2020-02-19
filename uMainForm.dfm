@@ -2,7 +2,7 @@ object frmFFUI: TfrmFFUI
   Left = 0
   Top = 0
   Caption = 'FFMPEG UI v2.0'
-  ClientHeight = 729
+  ClientHeight = 730
   ClientWidth = 1008
   Color = clBtnFace
   Constraints.MinHeight = 768
@@ -19,7 +19,7 @@ object frmFFUI: TfrmFFUI
   OnResize = FormResize
   DesignSize = (
     1008
-    729)
+    730)
   PixelsPerInch = 96
   TextHeight = 13
   object lblVideoFile: TLabel
@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsConfig
+    ActivePage = tsInfo
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabHeight = 40
     TabOrder = 0
@@ -194,6 +194,90 @@ object frmFFUI: TfrmFFUI
     object tsSept: TTabSheet
       Caption = #20998#31163
       ImageIndex = 4
+      object lbl2: TLabel
+        Left = 312
+        Top = 45
+        Width = 39
+        Height = 13
+        Caption = #38899#39057#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clBlue
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lbl3: TLabel
+        Left = 28
+        Top = 45
+        Width = 39
+        Height = 13
+        Caption = #35270#39057#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clBlue
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lbl4: TLabel
+        Left = 596
+        Top = 45
+        Width = 39
+        Height = 13
+        Caption = #23383#24149#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clBlue
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lbl5: TLabel
+        Left = 20
+        Top = 12
+        Width = 90
+        Height = 15
+        Caption = #27492#25991#20214#21253#21547#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clRed
+        Font.Height = -15
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lstDepartVideo: TListBox
+        Left = 70
+        Top = 45
+        Width = 185
+        Height = 228
+        ItemHeight = 13
+        TabOrder = 0
+      end
+      object lstDepartAudio: TListBox
+        Left = 354
+        Top = 45
+        Width = 185
+        Height = 228
+        ItemHeight = 13
+        TabOrder = 1
+      end
+      object lstDepartSubTitle: TListBox
+        Left = 646
+        Top = 45
+        Width = 185
+        Height = 228
+        ItemHeight = 13
+        TabOrder = 2
+      end
+      object btnDepart: TButton
+        Left = 354
+        Top = 388
+        Width = 185
+        Height = 57
+        Caption = #20998#31163
+        TabOrder = 3
+      end
     end
     object tsMerge: TTabSheet
       Caption = #21512#24182
@@ -249,11 +333,17 @@ object frmFFUI: TfrmFFUI
         Anchors = [akLeft, akTop, akRight]
         Caption = #25773#25918#26102#20351#29992#30340#35270#39057#24211#65306
         Columns = 3
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
         ItemIndex = 0
         Items.Strings = (
           'FFMPEG(v4.2.0)'
           'MPV (v2.0.0)'
           'VLC (v3.0.8)')
+        ParentFont = False
         TabOrder = 0
         OnClick = rgUIClick
       end
@@ -265,10 +355,16 @@ object frmFFUI: TfrmFFUI
         Anchors = [akLeft, akTop, akRight]
         Caption = #26159#21542#20351#29992'GPU'#21152#36895#65306
         Columns = 3
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
         ItemIndex = 0
         Items.Strings = (
           'YES ('#38656#35201' NVIDIA '#26174#21345#65292'X64'#24179#21488')'
           'NO')
+        ParentFont = False
         TabOrder = 1
         OnClick = rgUIClick
       end
@@ -279,6 +375,12 @@ object frmFFUI: TfrmFFUI
         Height = 237
         Anchors = [akLeft, akTop, akRight]
         Caption = #26684#24335#36716#25442#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
         TabOrder = 2
         DesignSize = (
           961
@@ -286,7 +388,7 @@ object frmFFUI: TfrmFFUI
         object lblVideoWidth: TLabel
           Left = 209
           Top = 78
-          Width = 24
+          Width = 26
           Height = 13
           Caption = #23485#65306
           Visible = False
@@ -294,7 +396,7 @@ object frmFFUI: TfrmFFUI
         object lblVideoHeight: TLabel
           Left = 209
           Top = 49
-          Width = 24
+          Width = 26
           Height = 13
           Caption = #23485#65306
           Visible = False
@@ -302,7 +404,7 @@ object frmFFUI: TfrmFFUI
         object lblSaveVideoPath: TLabel
           Left = 349
           Top = 49
-          Width = 36
+          Width = 39
           Height = 13
           Caption = #36335#24452#65306
           Visible = False
@@ -310,42 +412,42 @@ object frmFFUI: TfrmFFUI
         object lblConvTip: TLabel
           Left = 24
           Top = 26
-          Width = 48
+          Width = 52
           Height = 13
           Caption = #36716#25442#20026#65306
         end
         object lblTitle: TLabel
           Left = 30
           Top = 125
-          Width = 32
+          Width = 48
           Height = 13
           Caption = 'Title'#65306
         end
         object lblArtist: TLabel
           Left = 30
           Top = 153
-          Width = 38
+          Width = 55
           Height = 13
           Caption = 'Artist'#65306
         end
         object lblGenre: TLabel
           Left = 30
           Top = 181
-          Width = 41
+          Width = 48
           Height = 13
           Caption = 'Genre'#65306
         end
         object lblComment: TLabel
           Left = 30
           Top = 207
-          Width = 57
+          Width = 62
           Height = 13
           Caption = 'Comment'#65306
         end
         object lbl1: TLabel
           Left = 24
           Top = 103
-          Width = 60
+          Width = 65
           Height = 13
           Caption = #21098#36753#20449#24687#65306
         end
@@ -399,23 +501,6 @@ object frmFFUI: TfrmFFUI
           TabOrder = 3
           OnClick = chkVideoSavePathClick
         end
-        object btnSaveVideoPath: TButton
-          Left = 589
-          Top = 46
-          Width = 36
-          Height = 23
-          Caption = #36873#25321
-          TabOrder = 4
-          Visible = False
-        end
-        object edtSaveVideoPath: TEdit
-          Left = 385
-          Top = 47
-          Width = 205
-          Height = 21
-          TabOrder = 5
-          Visible = False
-        end
         object cbbConv: TComboBox
           Left = 30
           Top = 45
@@ -429,7 +514,7 @@ object frmFFUI: TfrmFFUI
           Font.Style = []
           ItemIndex = 0
           ParentFont = False
-          TabOrder = 6
+          TabOrder = 4
           Text = 'H264 (*.MKV)'
           Items.Strings = (
             'H264 (*.MKV)'
@@ -441,7 +526,7 @@ object frmFFUI: TfrmFFUI
           Top = 123
           Width = 203
           Height = 21
-          TabOrder = 7
+          TabOrder = 5
           Text = 'dbyoung'
         end
         object edtArtist: TEdit
@@ -449,7 +534,7 @@ object frmFFUI: TfrmFFUI
           Top = 150
           Width = 203
           Height = 21
-          TabOrder = 8
+          TabOrder = 6
           Text = 'FFUI 2.0'
         end
         object edtGenre: TEdit
@@ -457,7 +542,7 @@ object frmFFUI: TfrmFFUI
           Top = 177
           Width = 203
           Height = 21
-          TabOrder = 9
+          TabOrder = 7
           Text = 'Video'
         end
         object edtComment: TEdit
@@ -465,7 +550,7 @@ object frmFFUI: TfrmFFUI
           Top = 204
           Width = 203
           Height = 21
-          TabOrder = 10
+          TabOrder = 8
           Text = 'dbyoung@sina.com'
         end
         object btnSaveConvParam: TButton
@@ -475,7 +560,7 @@ object frmFFUI: TfrmFFUI
           Height = 25
           Anchors = [akRight, akBottom]
           Caption = #20445#23384
-          TabOrder = 11
+          TabOrder = 9
           OnClick = btnSaveConvParamClick
         end
         object btnSaveConvParamAndStartConv: TButton
@@ -485,8 +570,60 @@ object frmFFUI: TfrmFFUI
           Height = 25
           Anchors = [akRight, akBottom]
           Caption = #20445#23384#24182#24320#22987#36716#25442
-          TabOrder = 12
+          TabOrder = 10
           OnClick = btnSaveConvParamAndStartConvClick
+        end
+        object srchbxVideoConvSavePath: TSearchBox
+          Left = 394
+          Top = 46
+          Width = 348
+          Height = 21
+          TabOrder = 11
+          Visible = False
+          OnInvokeSearch = btnSaveVideoPathClick
+        end
+      end
+      object grpDepartPath: TGroupBox
+        Left = 12
+        Top = 377
+        Width = 961
+        Height = 93
+        Anchors = [akLeft, akTop, akRight]
+        Caption = #20998#31163#20445#23384#36335#24452#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 3
+        object lblDepartPath: TLabel
+          Left = 45
+          Top = 46
+          Width = 39
+          Height = 13
+          Caption = #36335#24452#65306
+          Visible = False
+        end
+        object chkDepartPath: TCheckBox
+          Left = 28
+          Top = 22
+          Width = 111
+          Height = 17
+          Caption = #20445#23384#36335#24452#21516#25991#20214
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+          OnClick = chkDepartPathClick
+        end
+        object srchbxDepartVideoSavePath: TSearchBox
+          Left = 84
+          Top = 43
+          Width = 658
+          Height = 21
+          TabOrder = 1
+          Visible = False
+          OnInvokeSearch = btnDepartPathClick
         end
       end
     end
@@ -511,7 +648,7 @@ object frmFFUI: TfrmFFUI
   end
   object statInfo: TStatusBar
     Left = 0
-    Top = 705
+    Top = 706
     Width = 1008
     Height = 24
     Panels = <>

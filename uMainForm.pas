@@ -58,8 +58,6 @@ type
     edtVideoWidth: TEdit;
     chkVideoSavePath: TCheckBox;
     lblSaveVideoPath: TLabel;
-    btnSaveVideoPath: TButton;
-    edtSaveVideoPath: TEdit;
     lblConvTip: TLabel;
     cbbConv: TComboBox;
     btnVideoConvParam: TButton;
@@ -74,6 +72,19 @@ type
     lbl1: TLabel;
     btnSaveConvParam: TButton;
     btnSaveConvParamAndStartConv: TButton;
+    lbl2: TLabel;
+    lbl3: TLabel;
+    lbl4: TLabel;
+    lstDepartVideo: TListBox;
+    lstDepartAudio: TListBox;
+    lstDepartSubTitle: TListBox;
+    btnDepart: TButton;
+    lbl5: TLabel;
+    grpDepartPath: TGroupBox;
+    chkDepartPath: TCheckBox;
+    lblDepartPath: TLabel;
+    srchbxVideoConvSavePath: TSearchBox;
+    srchbxDepartVideoSavePath: TSearchBox;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -97,6 +108,9 @@ type
     procedure btnVideoConvParamClick(Sender: TObject);
     procedure btnSaveConvParamClick(Sender: TObject);
     procedure btnSaveConvParamAndStartConvClick(Sender: TObject);
+    procedure btnSaveVideoPathClick(Sender: TObject);
+    procedure chkDepartPathClick(Sender: TObject);
+    procedure btnDepartPathClick(Sender: TObject);
   private
     FDOSCommand       : TDosCommand;
     FSynEdit_VideoInfo: TSynEdit;
@@ -161,7 +175,7 @@ begin
     end;
     if not chkVideoSavePath.Checked then
     begin
-      edtSaveVideoPath.Text := ReadString('Conv', 'SavePath', 'D:\');
+      srchbxVideoConvSavePath.Text := ReadString('Conv', 'SavePath', 'D:\');
     end;
 
     { 视频剪辑信息 }
@@ -169,6 +183,12 @@ begin
     edtArtist.Text  := ReadString('Conv', 'Artist', 'FFUI 2.0');
     edtGenre.Text   := ReadString('Conv', 'Genre', 'Video');
     edtComment.Text := ReadString('Conv', 'Comment', 'dbyoung@sina.com');
+
+    { 视频分离路径 }
+    chkDepartPath.Checked := ReadBool('Depart', 'SamePath', True);
+    if not chkDepartPath.Checked then
+      srchbxDepartVideoSavePath.Text := ReadString('Depart', 'SavePath', 'D:\');
+
     Free;
   end;
 
@@ -213,7 +233,7 @@ begin
 
     { 视频保存路径 }
     if not chkVideoSavePath.Checked then
-      WriteString('Conv', 'SavePath', edtSaveVideoPath.Text)
+      WriteString('Conv', 'SavePath', srchbxVideoConvSavePath.Text)
     else
       DeleteKey('Conv', 'SavePath');
 
@@ -222,6 +242,13 @@ begin
     WriteString('Conv', 'Artist', edtArtist.Text);
     WriteString('Conv', 'Genre', edtGenre.Text);
     WriteString('Conv', 'Comment', edtComment.Text);
+
+    { 分离保存路径 }
+    WriteBool('Depart', 'SamePath', chkDepartPath.Checked);
+    if not chkDepartPath.Checked then
+      WriteString('Depart', 'SavePath', srchbxDepartVideoSavePath.Text)
+    else
+      DeleteKey('Depart', 'SavePath');
 
     Free;
   end;
@@ -250,9 +277,18 @@ begin
 
   if not chkVideoSavePath.Checked then
   begin
-    if Trim(edtSaveVideoPath.Text) = '' then
+    if Trim(srchbxVideoConvSavePath.Text) = '' then
     begin
       MessageBox(Handle, '必须选择一个目录，来保存转换后的视频', c_strMsgTitle, MB_OK or MB_ICONWARNING);
+      Exit;
+    end;
+  end;
+
+  if not chkDepartPath.Checked then
+  begin
+    if Trim(srchbxDepartVideoSavePath.Text) = '' then
+    begin
+      MessageBox(Handle, '必须选择一个目录，来保存分离的视频', c_strMsgTitle, MB_OK or MB_ICONWARNING);
       Exit;
     end;
   end;
@@ -280,6 +316,16 @@ begin
   SaveConfig;
 end;
 
+procedure TfrmFFUI.btnSaveVideoPathClick(Sender: TObject);
+var
+  strSelectedFolder: String;
+begin
+  if not SelectDirectory('选择保存视频转换结果目录：', '选择目录：', strSelectedFolder) then
+    Exit;
+
+  srchbxVideoConvSavePath.Text := strSelectedFolder;
+end;
+
 procedure TfrmFFUI.chkVideoSizeClick(Sender: TObject);
 begin
   lblVideoWidth.Visible  := not chkVideoSize.Checked;
@@ -288,11 +334,16 @@ begin
   edtVideoHeight.Visible := not chkVideoSize.Checked;
 end;
 
+procedure TfrmFFUI.chkDepartPathClick(Sender: TObject);
+begin
+  lblDepartPath.Visible             := not chkDepartPath.Checked;
+  srchbxDepartVideoSavePath.Visible := not chkDepartPath.Checked;
+end;
+
 procedure TfrmFFUI.chkVideoSavePathClick(Sender: TObject);
 begin
-  lblSaveVideoPath.Visible := not chkVideoSavePath.Checked;
-  edtSaveVideoPath.Visible := not chkVideoSavePath.Checked;
-  btnSaveVideoPath.Visible := not chkVideoSavePath.Checked;
+  lblSaveVideoPath.Visible        := not chkVideoSavePath.Checked;
+  srchbxVideoConvSavePath.Visible := not chkVideoSavePath.Checked;
 end;
 
 { 创建语法高亮的 SynEdit 控件 }
@@ -645,6 +696,16 @@ begin
     lstFiles.DeleteSelected;
 end;
 
+procedure TfrmFFUI.btnDepartPathClick(Sender: TObject);
+var
+  strSelectedFolder: String;
+begin
+  if not SelectDirectory('选择保存视频转换结果目录：', '选择目录：', strSelectedFolder) then
+    Exit;
+
+  srchbxDepartVideoSavePath.Text := strSelectedFolder;
+end;
+
 procedure TfrmFFUI.btnVideoConvParamClick(Sender: TObject);
 begin
   pgcAll.ActivePage := tsConfig;
@@ -708,12 +769,11 @@ begin
     Exit;
   end;
 
+  strVideoInfo := Format(c_strVideoInfo, [edtTitle.Text, edtArtist.Text, edtGenre.Text, edtComment.Text]);
   if chkVideoSize.Checked then
     strVideoSize := ''
   else
     strVideoSize := Format(c_strVideoSize, [edtVideoWidth.Text, edtVideoHeight.Text]);
-
-  strVideoInfo := Format(c_strVideoInfo, [edtTitle.Text, edtArtist.Text, edtGenre.Text, edtComment.Text]);
 
   strExtFileName := Ifthen(cbbConv.ItemIndex <> 2, '.mkv', '.flv');
   strFFMPEGPath  := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
@@ -731,7 +791,7 @@ begin
       end
       else
       begin
-        strOutPutFile := edtSaveVideoPath.Text + ChangeFileExt(ExtractFileName(strInputFile), strExtFileName);
+        strOutPutFile := srchbxVideoConvSavePath.Text + ChangeFileExt(ExtractFileName(strInputFile), strExtFileName);
         if not System.SysUtils.DirectoryExists(ExtractFileDir(strOutPutFile)) then
           System.SysUtils.ForceDirectories(ExtractFileDir(strOutPutFile));
       end;
