@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsConfig
+    ActivePage = tsConv
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -73,8 +73,8 @@ object frmFFUI: TfrmFFUI
           OnClick = btnVideoPlayPlayClick
         end
         object btnVideoPlayPause: TButton
-          Left = 105
-          Top = 4
+          Left = 106
+          Top = 5
           Width = 89
           Height = 29
           Caption = #26242#20572
@@ -84,7 +84,7 @@ object frmFFUI: TfrmFFUI
         end
         object btnVideoPlayStop: TButton
           Left = 202
-          Top = 4
+          Top = 5
           Width = 89
           Height = 29
           Caption = #20572#27490
@@ -551,7 +551,7 @@ object frmFFUI: TfrmFFUI
         Font.Style = []
         ItemIndex = 0
         Items.Strings = (
-          'YES(NV GF1050'#20197#19978#26174#21345','#39537#21160'>436.15,X64'#24179#21488')'
+          'YES(NV GF1050'#20197#19978#26174#21345','#39537#21160'>436.15)'
           'NO')
         ParentFont = False
         TabOrder = 1
@@ -716,7 +716,7 @@ object frmFFUI: TfrmFFUI
           Width = 203
           Height = 21
           TabOrder = 5
-          Text = 'dbyoung'
+          Text = 'FFUI 2.0'
         end
         object edtArtist: TEdit
           Left = 84
@@ -724,7 +724,7 @@ object frmFFUI: TfrmFFUI
           Width = 203
           Height = 21
           TabOrder = 6
-          Text = 'FFUI 2.0'
+          Text = 'dbyoung'
         end
         object edtGenre: TEdit
           Left = 84

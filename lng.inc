@@ -98,7 +98,7 @@ begin
 
   rgPlayUI.Caption           := '播放时使用的视频库：';
   rgUseGPU.Caption           := '是否使用GPU加速：';
-  rgUseGPU.Items.Strings[0]  := '是(NV GF1050以上显卡,驱动>436.15,X64平台)';
+  rgUseGPU.Items.Strings[0]  := '是(NV GF1050以上显卡,驱动>436.15)';
   rgUseGPU.Items.Strings[1]  := '否';
   lnklblHelpAccelGPU.Caption := '<a href="https://developer.nvidia.com/video-encode-decode-gpu-support-matrix">NVIDIA GPU 加速帮助</a>';
   lnklblHelpAccelGPU.Hint    := '查看显卡是否支持 GPU 加速';
@@ -186,7 +186,7 @@ begin
 
   rgPlayUI.Caption           := 'Video library for play：';
   rgUseGPU.Caption           := 'Use GPU Accelerate：';
-  rgUseGPU.Items.Strings[0]  := 'Yes(NV GF1050 above,Drivers>436.15,X64)';
+  rgUseGPU.Items.Strings[0]  := 'Yes(NV GF1050 above,Drivers>436.15)';
   rgUseGPU.Items.Strings[1]  := 'No';
   lnklblHelpAccelGPU.Caption := '<a href="https://developer.nvidia.com/video-encode-decode-gpu-support-matrix">NVIDIA GPU Help</a>';
   lnklblHelpAccelGPU.Hint    := 'Check whether the graphics card supports GPU acceleration';

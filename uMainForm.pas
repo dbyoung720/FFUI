@@ -3,11 +3,10 @@ unit uMainForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.PsAPI, Winapi.ShellAPI, Winapi.ShlObj, Winapi.ActiveX, System.SysUtils, System.StrUtils, System.Variants, System.Classes, System.IniFiles, System.IOUtils, System.Types, System.Math,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl,
+  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl, Vcl.ImgList,
   {第三方控件}
-  SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI, System.ImageList,
-  Vcl.ImgList;
+  SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI;
 
 type
   { 打开文件方式：文件/文件夹/网络视频流地址 }
@@ -240,6 +239,7 @@ begin
     with TIniFile.Create(strIniFileName) do
     begin
       rgPlayUI.ItemIndex := ReadInteger('Main', 'PlayUI', 0);
+      rgUseGPU.ItemIndex := ReadInteger('Main', 'UseGPU', 0);
 
       { 视频转换参数 }
       cbbConv.ItemIndex       := ReadInteger('Conv', 'Format', 0);
@@ -280,17 +280,6 @@ begin
 
       Free;
     end;
-{$IF Defined(CPUX86)}
-    rgUseGPU.ItemIndex := 1;
-    rgUseGPU.Enabled   := False;
-{$ELSE}
-    with TIniFile.Create(strIniFileName) do
-    begin
-      rgUseGPU.ItemIndex := ReadInteger('Main', 'UseGPU', 0);
-      rgUseGPU.Enabled   := True;
-      Free;
-    end;
-{$ENDIF}
   finally
     FbLoadConfig := False;
   end;
@@ -602,25 +591,6 @@ begin
   end;
 end;
 
-function SHOpenFolderAndSelectItems(pidlFolder: pItemIDList; cidl: Cardinal; apidl: Pointer; dwFlags: DWORD): HRESULT; stdcall; external shell32;
-
-function OpenFolderAndSelectFile(const strFileName: string; const bEditMode: Boolean = False): Boolean;
-var
-  IIDL      : pItemIDList;
-  pShellLink: IShellLink;
-  hr        : Integer;
-begin
-  Result := False;
-
-  hr := CoCreateInstance(CLSID_ShellLink, nil, CLSCTX_INPROC_SERVER, IID_IShellLink, &pShellLink);
-  if hr = S_OK then
-  begin
-    pShellLink.SetPath(PChar(strFileName));
-    pShellLink.GetIDList(&IIDL);
-    Result := SHOpenFolderAndSelectItems(IIDL, 0, nil, Cardinal(bEditMode)) = S_OK;
-  end;
-end;
-
 { 打开视频转换后的保存目录 }
 procedure TfrmFFUI.OpenVideoConvPath;
 var
@@ -632,7 +602,7 @@ begin
     strSavePath := srchbxVideoConvSavePath.Text;
 
   if chkConvOpenSavePath.Checked then
-    OpenFolderAndSelectFile(srchbxSelectVideoFile.Text);
+    ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
 end;
 
 { 打开视频分离后的保存目录 }
@@ -646,7 +616,7 @@ begin
     strSavePath := srchbxSplitVideoSavePath.Text;
 
   if chkSplitOpenSavePath.Checked then
-    OpenFolderAndSelectFile(srchbxSelectVideoFile.Text);
+    ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
 end;
 
 { 视频转换结束 }
@@ -680,11 +650,12 @@ begin
           for I := 0 to Count - 1 do
           begin
             strSplit := Strings[I].Split([',']);
-            lstSplitVideo.Items.Add(strSplit[0] + '/' + strSplit[1] + '/' + strSplit[2]);
+            lstSplitVideo.Items.Add(strSplit[1] + '/' + strSplit[2]);
           end;
           Free;
         end;
       finally
+        FSynEdit_VideoSplit.Lines.Clear;
         DeleteFile(strTempVideoCSVFileName);
       end;
     end;
@@ -702,11 +673,12 @@ begin
           for I := 0 to Count - 1 do
           begin
             strSplit := Strings[I].Split([',']);
-            lstSplitAudio.Items.Add(strSplit[0] + '/' + strSplit[1] + '/' + strSplit[2]);
+            lstSplitAudio.Items.Add(strSplit[1] + '/' + strSplit[2]);
           end;
           Free;
         end;
       finally
+        FSynEdit_VideoSplit.Lines.Clear;
         DeleteFile(strTempAudioCSVFileName);
       end;
     end;
@@ -724,17 +696,16 @@ begin
           for I := 0 to Count - 1 do
           begin
             strSplit := Strings[I].Split([',']);
-            lstSplitSubtitle.Items.Add(strSplit[0] + '/' + strSplit[1] + '/' + strSplit[2]);
+            lstSplitSubtitle.Items.Add(strSplit[1] + '/' + strSplit[2]);
           end;
           Free;
         end;
       finally
+        FSynEdit_VideoSplit.Lines.Clear;
         DeleteFile(strTempSubtitleCSVFileName);
       end;
       FStatStyle := ssBlank;
     end;
-
-    FSynEdit_VideoSplit.Lines.Clear;
 
     { 视频分离结束 }
     if FVideoStyle = vsConv then
@@ -1098,11 +1069,10 @@ const
   c_strVideoSize           = ' -s %sx%s ';
   c_strVideoInfo           = ' -metadata "title=%s" -metadata "artist=%s" -metadata "genre=%s" -metadata "comment=%s" ';
   c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    %s %s -y "%s"';
-  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc %s %s -y "%s"';
-  c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    %s %s -y "%s"';
   c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx265    %s %s -y "%s"';
-  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h265_nvenc %s %s -y "%s"';
-  c_strFFMPEGConv_GPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc %s %s -y "%s"';
+  c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v flv        %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v nvenc_hevc %s %s -y "%s"';
 var
   strFFMPEGPath      : String;
   strFFMPGCommandLine: String;
@@ -1110,39 +1080,10 @@ var
   strOutPutFile      : string;
   I                  : Integer;
   strTempCMDFileName : String;
-  lstCMD             : TStringList;
   strExtFileName     : String;
   strVideoSize       : String;
   strVideoInfo       : String;
-  procedure X86_CPU;
-  begin
-    case cbbConv.ItemIndex of
-      0:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
-      1:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
-      2:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_FFLV, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
-    end;
-  end;
-
-  procedure X64_CPU;
-  begin
-    X86_CPU;
-  end;
-
-  procedure X64_GPU;
-  begin
-    case cbbConv.ItemIndex of
-      0:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
-      1:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
-      2:
-        strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_FFLV, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
-    end;
-  end;
-
+  lstCMD             : TStringList;
 begin
   if lstFiles.Count <= 0 then
   begin
@@ -1164,7 +1105,7 @@ begin
     begin
       Application.ProcessMessages;
       strInputFile := lstFiles.Items.Strings[I];
-      if chkConvOpenSavePath.Checked then
+      if chkConvSavePath.Checked then
       begin
         strOutPutFile := ChangeFileExt(strInputFile, strExtFileName);
         if SameText(strOutPutFile, strInputFile) then
@@ -1172,19 +1113,29 @@ begin
       end
       else
       begin
-        strOutPutFile := srchbxVideoConvSavePath.Text + ChangeFileExt(ExtractFileName(strInputFile), strExtFileName);
+        if RightStr(srchbxVideoConvSavePath.Text, 1) <> '\' then
+          strOutPutFile := srchbxVideoConvSavePath.Text + '\' + ChangeFileExt(ExtractFileName(strInputFile), strExtFileName)
+        else
+          strOutPutFile := srchbxVideoConvSavePath.Text + ChangeFileExt(ExtractFileName(strInputFile), strExtFileName);
         if not System.SysUtils.DirectoryExists(ExtractFileDir(strOutPutFile)) then
           System.SysUtils.ForceDirectories(ExtractFileDir(strOutPutFile));
       end;
 
-{$IF Defined(CPUX86)}
-      X86_CPU;
-{$ELSE}
-      if rgUseGPU.ItemIndex = 0 then
-        X64_GPU
-      else
-        X64_CPU;
-{$ENDIF}
+      case cbbConv.ItemIndex of
+        0:
+          if rgUseGPU.ItemIndex = 1 then
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile])
+          else
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
+        1:
+          if rgUseGPU.ItemIndex = 1 then
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile])
+          else
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
+        2:
+          strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_FFLV, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
+      end;
+
       lstCMD.Add(strFFMPGCommandLine);
     end;
 
@@ -1286,24 +1237,24 @@ begin
     { 分离出视频 命令行 }
     for I := 0 to lstSplitVideo.Count - 1 do
     begin
-      intIndex          := StrToInt(lstSplitVideo.Items.Strings[I].Split(['/'])[1]);
-      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + lstSplitVideo.Items.Strings[I].Split(['/'])[2];
+      intIndex          := StrToInt(lstSplitVideo.Items.Strings[I].Split(['/'])[0]);
+      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + 'mp4'; // lstSplitVideo.Items.Strings[I].Split(['/'])[1];
       Add(Format('"%s\ffmpeg.exe" -hide_banner -i "%s" -c copy -map 0:%d -y "%s"', [strFFMPEGPath, strVideoFileName, intIndex, strOutputFileName]));
     end;
 
     { 分离出音频 命令行 }
     for I := 0 to lstSplitAudio.Count - 1 do
     begin
-      intIndex          := StrToInt(lstSplitAudio.Items.Strings[I].Split(['/'])[1]);
-      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + lstSplitAudio.Items.Strings[I].Split(['/'])[2];
+      intIndex          := StrToInt(lstSplitAudio.Items.Strings[I].Split(['/'])[0]);
+      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + lstSplitAudio.Items.Strings[I].Split(['/'])[1];
       Add(Format('"%s\ffmpeg.exe" -hide_banner -i "%s" -c copy -map 0:%d -y "%s"', [strFFMPEGPath, strVideoFileName, intIndex, strOutputFileName]));
     end;
 
     { 分离出字幕 命令行 }
     for I := 0 to lstSplitSubtitle.Count - 1 do
     begin
-      intIndex          := StrToInt(lstSplitSubtitle.Items.Strings[I].Split(['/'])[1]);
-      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + lstSplitSubtitle.Items.Strings[I].Split(['/'])[2];
+      intIndex          := StrToInt(lstSplitSubtitle.Items.Strings[I].Split(['/'])[0]);
+      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + lstSplitSubtitle.Items.Strings[I].Split(['/'])[1];
       Add(Format('"%s\ffmpeg.exe" -hide_banner -i "%s" -c copy -map 0:%d -y "%s"', [strFFMPEGPath, strVideoFileName, intIndex, strOutputFileName]));
     end;
 
@@ -1322,7 +1273,7 @@ procedure TfrmFFUI.btnMergeAudioAddClick(Sender: TObject);
 begin
   with TOpenDialog.Create(nil) do
   begin
-    Filter := '音频流(*.wav;*.mp3;*.m3p;*.ogg;*.aac)|*.wav;*.mp3;*.m3p;*.ogg;*.aac';
+    Filter := '音频流(*.wav;*.mp3;*.m3p;*.ogg;*.aac;*.ac3)|*.wav;*.mp3;*.m3p;*.ogg;*.aac;*.ac3';
     if Execute() then
     begin
       lstMergeAudio.Items.Add(FileName);
