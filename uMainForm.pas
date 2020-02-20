@@ -90,8 +90,8 @@ type
     btnVideoSplit: TButton;
     lblVideoSplitTip: TLabel;
     grpSplitPath: TGroupBox;
-    chkSplitPath: TCheckBox;
-    lblSplitPath: TLabel;
+    chkSplitSamePath: TCheckBox;
+    lblSplitSamePath: TLabel;
     srchbxVideoConvSavePath: TSearchBox;
     srchbxSplitVideoSavePath: TSearchBox;
     lnklblHelpAccelGPU: TLinkLabel;
@@ -100,6 +100,27 @@ type
     tsCut: TTabSheet;
     chkConvOpenSavePath: TCheckBox;
     chkSplitOpenSavePath: TCheckBox;
+    lblMergeVideo: TLabel;
+    lstMergeVideo: TListBox;
+    lblMergeAudio: TLabel;
+    lblMergeSubtitle: TLabel;
+    lstMergeAudio: TListBox;
+    lstMergeSubtitle: TListBox;
+    lblMergeTip: TLabel;
+    btnMergeVideoAdd: TButton;
+    btnMergeVideoDel: TButton;
+    btnMergeAudioAdd: TButton;
+    btnMergeAudioDel: TButton;
+    btnMergeSubtitleAdd: TButton;
+    btnMergeSubtitleDel: TButton;
+    btnMerge: TButton;
+    grpMergePath: TGroupBox;
+    lblMergeSamePath: TLabel;
+    chkMergeSamePath: TCheckBox;
+    srchbxMergeSavePath: TSearchBox;
+    chkMergeOpenSavePath: TCheckBox;
+    lblMergeFormat: TLabel;
+    cbbMergeFormat: TComboBox;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -123,19 +144,30 @@ type
     procedure btnVideoConvParamClick(Sender: TObject);
     procedure btnSaveConvParamClick(Sender: TObject);
     procedure btnSaveConvParamAndStartConvClick(Sender: TObject);
-    procedure btnSaveVideoPathClick(Sender: TObject);
-    procedure chkSplitPathClick(Sender: TObject);
-    procedure btnSplitPathClick(Sender: TObject);
+    procedure chkSplitSamePathClick(Sender: TObject);
     procedure lnklblHelpAccelGPULinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
     procedure rgLanguageUIClick(Sender: TObject);
     procedure btnVideoSplitClick(Sender: TObject);
     procedure chkConvOpenSavePathClick(Sender: TObject);
+    procedure chkMergeSamePathClick(Sender: TObject);
+    procedure chkMergeOpenSavePathClick(Sender: TObject);
+    procedure btnMergeClick(Sender: TObject);
+    procedure srchbxSplitVideoSavePathInvokeSearch(Sender: TObject);
+    procedure srchbxVideoConvSavePathInvokeSearch(Sender: TObject);
+    procedure btnMergeVideoAddClick(Sender: TObject);
+    procedure btnMergeVideoDelClick(Sender: TObject);
+    procedure btnMergeAudioAddClick(Sender: TObject);
+    procedure btnMergeAudioDelClick(Sender: TObject);
+    procedure btnMergeSubtitleAddClick(Sender: TObject);
+    procedure btnMergeSubtitleDelClick(Sender: TObject);
+    procedure cbbMergeFormatChange(Sender: TObject);
   private
     FlngUI             : TLangUI;
     FDOSCommand        : TDosCommand;
     FSynEdit_VideoInfo : TSynEdit;
     FSynEdit_VideoConv : TSynEdit;
     FSynEdit_VideoSplit: TSynEdit;
+    FSynEdit_VideoMerge: TSynEdit;
     FJSONHL            : TSynJSONSyn;
     FFileStyle         : TFileStyle;
     FVideoStyle        : TVideoStyle;
@@ -184,191 +216,7 @@ var
 implementation
 
 {$R *.dfm}
-
-const
-  c_strMsgTitle: PChar = '系统提示：';
-
-function TfrmFFUI.TransUI(const strLang: string): String;
-begin
-  if FlngUI = lngEnglish then
-  begin
-    if SameText(strLang, String(c_strMsgTitle)) then
-      Result := 'System Information：'
-    else if SameText(strLang, '视频剪辑信息不允许为空，请输入正确的值') then
-      Result := 'Video Info is not null, must be input'
-    else if SameText(strLang, '必须输入正确视频的宽和高') then
-      Result := 'Must be intput video width/height'
-    else if SameText(strLang, '必须选择一个目录，来保存转换后的视频') then
-      Result := 'Must be select a folder, save convert'
-    else if SameText(strLang, '必须选择一个目录，来保存分离的视频') then
-      Result := 'Must be select a folder, save split'
-    else if SameText(strLang, '选择保存视频转换结果目录：') then
-      Result := 'select a folder, save convert：'
-    else if SameText(strLang, '选择目录：') then
-      Result := 'select folder：'
-    else if SameText(strLang, '选择一个目录，目录下包含视频文件') then
-      Result := 'select a folder, the folder contains video'
-    else if SameText(strLang, '目录名称：') then
-      Result := 'Folder name：'
-    else if SameText(strLang, '网络视频地址：') then
-      Result := 'Web stream addr：'
-    else if SameText(strLang, '地址：') then
-      Result := 'Addr：'
-    else if SameText(strLang, '请先选择打开一个视频文件，再播放') then
-      Result := 'Please select a video file before playing'
-    else if SameText(strLang, '视频正在播放，请停止后，再次播放') then
-      Result := 'Video is playing, please stop and play again'
-    else if SameText(strLang, '选择保存视频转换结果目录：') then
-      Result := 'Select video save folder：'
-    else if SameText(strLang, '必须先添加视频文件再转换') then
-      Result := 'Video files must be added before conversion'
-    else if SameText(strLang, '必须先打开一个视频文件，再进行视频分离') then
-      Result := 'A video file must be opened before video split'
-  end
-  else
-  begin
-    Result := strLang;
-  end;
-end;
-
-procedure TfrmFFUI.ChangeLanguageChinese;
-begin
-  mniOpenFile.Caption       := '打开文件...';
-  mniOpenFolder.Caption     := '打开文件夹...';
-  mniOpenWebStream.Caption  := '打开网络串流...';
-  mniCopyDosCommand.Caption := '复制到剪切板';
-
-  lblVideoFile.Caption := '打开文件/文件夹/网络串流：';
-  tsInfo.Caption       := '信息';
-  tsPlay.Caption       := '播放';
-  tsConv.Caption       := '转换';
-  tsSplit.Caption      := '分离';
-  tsMerge.Caption      := '合并';
-  tsCut.Caption        := '截取';
-  tsLive.Caption       := '直播';
-  tsConfig.Caption     := '配置';
-
-  btnVideoPlayPlay.Caption  := '播放';
-  btnVideoPlayPause.Caption := '暂停';
-  btnVideoPlayStop.Caption  := '停止';
-
-  btnAddVideoFile.Caption   := '添加文件';
-  btnAddFolder.Caption      := '添加文件夹';
-  btnDelVideoFile.Caption   := '删除';
-  btnVideoConvParam.Caption := '参数配置';
-  btnVideoStartConv.Caption := '转换';
-  btnVideoStopConv.Caption  := '停止转换';
-
-  lblVideoSplitTip.Caption      := '此文件包含：';
-  lblVidoeSplitVideo.Caption    := '视频流：';
-  lblVidoeSplitAudio.Caption    := '音频流：';
-  lblVidoeSplitSubtitle.Caption := '字幕流：';
-  btnVideoSplit.Caption         := '分离';
-
-  rgLive.Items.Strings[0] := '磁盘文件';
-  rgLive.Items.Strings[1] := 'USB摄像头';
-  rgLive.Items.Strings[2] := 'IP 相机';
-  rgLive.Items.Strings[3] := '桌 面';
-
-  rgPlayUI.Caption           := '播放时使用的视频库：';
-  rgUseGPU.Caption           := '是否使用GPU加速：';
-  rgUseGPU.Items.Strings[0]  := '是(NV GF1050以上显卡,驱动>436.15,X64平台)';
-  rgUseGPU.Items.Strings[1]  := '否';
-  lnklblHelpAccelGPU.Caption := '<a href="https://developer.nvidia.com/video-encode-decode-gpu-support-matrix">NVIDIA GPU 加速帮助</a>';
-
-  grpVideoConv.Caption                 := '格式转换：';
-  lblConvTip.Caption                   := '转换为：';
-  chkVideoSize.Caption                 := '保持视频宽高';
-  lblVideoWidth.Caption                := '宽：';
-  lblVideoHeight.Caption               := '高：';
-  chkConvSavePath.Caption              := '保存路径同文件';
-  lblSaveVideoPath.Caption             := '路径：';
-  chkConvOpenSavePath.Caption          := '转换结束打开保存目录';
-  lblVideoInfo.Caption                 := '剪辑信息：';
-  lblTitle.Caption                     := '标题：';
-  lblArtist.Caption                    := '艺术：';
-  lblGenre.Caption                     := '类型：';
-  lblComment.Caption                   := '注释：';
-  btnSaveConvParam.Caption             := '保存';
-  btnSaveConvParamAndStartConv.Caption := '保存并开始转换';
-
-  grpSplitPath.Caption         := '分离保存路径：';
-  chkSplitPath.Caption         := '保存路径同文件';
-  lblSplitPath.Caption         := '路径：';
-  chkSplitOpenSavePath.Caption := '分离结束打开保存目录';
-
-  rgLanguageUI.Caption := '界面语言：';
-end;
-
-procedure TfrmFFUI.ChangeLanguageEnglish;
-begin
-  mniOpenFile.Caption       := 'Open file...';
-  mniOpenFolder.Caption     := 'Open folder...';
-  mniOpenWebStream.Caption  := 'Open stream...';
-  mniCopyDosCommand.Caption := 'Copy to clipbrd';
-
-  lblVideoFile.Caption := 'Open File/Folder/Stream：';
-  tsInfo.Caption       := 'Info';
-  tsPlay.Caption       := 'Play';
-  tsConv.Caption       := 'Conv';
-  tsSplit.Caption      := 'Split';
-  tsMerge.Caption      := 'Merge';
-  tsCut.Caption        := 'Cut';
-  tsLive.Caption       := 'Live';
-  tsConfig.Caption     := 'Config';
-
-  btnVideoPlayPlay.Caption  := 'Play';
-  btnVideoPlayPause.Caption := 'Pause';
-  btnVideoPlayStop.Caption  := 'Stop';
-
-  btnAddVideoFile.Caption   := 'Add File';
-  btnAddFolder.Caption      := 'Add Folder';
-  btnDelVideoFile.Caption   := 'Delete';
-  btnVideoConvParam.Caption := 'Param config';
-  btnVideoStartConv.Caption := 'Convert';
-  btnVideoStopConv.Caption  := 'Stop convert';
-
-  lblVideoSplitTip.Caption      := 'File include：';
-  lblVidoeSplitVideo.Caption    := 'Video:';
-  lblVidoeSplitAudio.Caption    := 'Audio:';
-  lblVidoeSplitSubtitle.Caption := 'Subtitle:';
-  btnVideoSplit.Caption         := 'Split';
-
-  rgLive.Items.Strings[0] := 'Disk File';
-  rgLive.Items.Strings[1] := 'USB Camera';
-  rgLive.Items.Strings[2] := 'IP Camera';
-  rgLive.Items.Strings[3] := 'Desktop';
-
-  rgPlayUI.Caption           := 'Video library for play：';
-  rgUseGPU.Caption           := 'Use GPU Accelerate：';
-  rgUseGPU.Items.Strings[0]  := 'Yes(NV GF1050 above,Drivers>436.15,X64)';
-  rgUseGPU.Items.Strings[1]  := 'No';
-  lnklblHelpAccelGPU.Caption := '<a href="https://developer.nvidia.com/video-encode-decode-gpu-support-matrix">NVIDIA GPU Help</a>';
-
-  grpVideoConv.Caption        := 'Convert format：';
-  lblConvTip.Caption          := 'Convert to：';
-  chkVideoSize.Caption        := 'Same Video Size';
-  lblVideoWidth.Caption       := 'W：';
-  lblVideoHeight.Caption      := 'H：';
-  chkConvSavePath.Caption     := 'Same Path';
-  lblSaveVideoPath.Caption    := 'Path：';
-  chkConvOpenSavePath.Caption := 'Open save path after finish convert';
-
-  lblVideoInfo.Caption                 := 'Video Info：';
-  lblTitle.Caption                     := 'Title:';
-  lblArtist.Caption                    := 'Artist:';
-  lblGenre.Caption                     := 'Genre:';
-  lblComment.Caption                   := 'Comment:';
-  btnSaveConvParam.Caption             := 'Save';
-  btnSaveConvParamAndStartConv.Caption := 'Save And Convert';
-
-  grpSplitPath.Caption         := 'Split save path：';
-  chkSplitPath.Caption         := 'Same path';
-  lblSplitPath.Caption         := 'Path：';
-  chkSplitOpenSavePath.Caption := 'Open save path after finish split';
-
-  rgLanguageUI.Caption := 'Language UI：';
-end;
+{$INCLUDE lng.inc}
 
 { 更改界面语言 }
 procedure TfrmFFUI.ChangeLanguageUI;
@@ -414,9 +262,16 @@ begin
       edtComment.Text := ReadString('Conv', 'Comment', 'dbyoung@sina.com');
 
       { 视频分离路径 }
-      chkSplitPath.Checked := ReadBool('Split', 'SamePath', True);
-      if not chkSplitPath.Checked then
+      chkSplitSamePath.Checked := ReadBool('Split', 'SamePath', True);
+      if not chkSplitSamePath.Checked then
         srchbxSplitVideoSavePath.Text := ReadString('Split', 'SavePath', 'D:\');
+      chkSplitOpenSavePath.Checked    := ReadBool('Split', 'OpenSavePath', True);
+
+      { 视频合并路径 }
+      chkMergeSamePath.Checked := ReadBool('Merge', 'SamePath', True);
+      if not chkMergeSamePath.Checked then
+        srchbxMergeSavePath.Text   := ReadString('Merge', 'SavePath', 'D:\');
+      chkMergeOpenSavePath.Checked := ReadBool('Merge', 'OpenSavePath', True);
 
       { 界面语言 }
       FlngUI                 := TLangUI(ReadInteger('UI', 'Language', 0) mod 2);
@@ -481,11 +336,20 @@ begin
     WriteString('Conv', 'Comment', edtComment.Text);
 
     { 分离保存路径 }
-    WriteBool('Split', 'SamePath', chkSplitPath.Checked);
-    if not chkSplitPath.Checked then
+    WriteBool('Split', 'SamePath', chkSplitSamePath.Checked);
+    if not chkSplitSamePath.Checked then
       WriteString('Split', 'SavePath', srchbxSplitVideoSavePath.Text)
     else
       DeleteKey('Split', 'SavePath');
+    WriteBool('Split', 'OpenSavePath', chkSplitOpenSavePath.Checked);
+
+    { 合并保存路径 }
+    WriteBool('Merge', 'SamePath', chkMergeSamePath.Checked);
+    if not chkMergeSamePath.Checked then
+      WriteString('Merge', 'SavePath', srchbxMergeSavePath.Text)
+    else
+      DeleteKey('Merge', 'SavePath');
+    WriteBool('Merge', 'OpenSavePath', chkMergeOpenSavePath.Checked);
 
     { 界面语言 }
     WriteInteger('UI', 'Language', rgLanguageUI.ItemIndex);
@@ -527,7 +391,7 @@ begin
     end;
   end;
 
-  if not chkSplitPath.Checked then
+  if not chkSplitSamePath.Checked then
   begin
     if Trim(srchbxSplitVideoSavePath.Text) = '' then
     begin
@@ -568,16 +432,6 @@ begin
   SaveConfig;
 end;
 
-procedure TfrmFFUI.btnSaveVideoPathClick(Sender: TObject);
-var
-  strSelectedFolder: String;
-begin
-  if not SelectDirectory(TransUI('选择保存视频转换结果目录：'), TransUI('选择目录：'), strSelectedFolder) then
-    Exit;
-
-  srchbxVideoConvSavePath.Text := strSelectedFolder;
-end;
-
 procedure TfrmFFUI.chkVideoSizeClick(Sender: TObject);
 begin
   lblVideoWidth.Visible  := not chkVideoSize.Checked;
@@ -591,10 +445,10 @@ begin
   SaveConfig;
 end;
 
-procedure TfrmFFUI.chkSplitPathClick(Sender: TObject);
+procedure TfrmFFUI.chkSplitSamePathClick(Sender: TObject);
 begin
-  lblSplitPath.Visible             := not chkSplitPath.Checked;
-  srchbxSplitVideoSavePath.Visible := not chkSplitPath.Checked;
+  lblSplitSamePath.Visible         := not chkSplitSamePath.Checked;
+  srchbxSplitVideoSavePath.Visible := not chkSplitSamePath.Checked;
 end;
 
 procedure TfrmFFUI.chkConvSavePathClick(Sender: TObject);
@@ -603,9 +457,25 @@ begin
   srchbxVideoConvSavePath.Visible := not chkConvSavePath.Checked;
 end;
 
+procedure TfrmFFUI.chkMergeOpenSavePathClick(Sender: TObject);
+begin
+  SaveConfig;
+end;
+
+procedure TfrmFFUI.chkMergeSamePathClick(Sender: TObject);
+begin
+  lblMergeSamePath.Visible    := not chkMergeSamePath.Checked;
+  srchbxMergeSavePath.Visible := not chkMergeSamePath.Checked;
+end;
+
 procedure TfrmFFUI.lnklblHelpAccelGPULinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
 begin
   ShellExecute(0, nil, PChar(Link), nil, nil, 1);
+end;
+
+procedure TfrmFFUI.cbbMergeFormatChange(Sender: TObject);
+begin
+  //
 end;
 
 { 创建语法高亮的 SynEdit 控件 }
@@ -652,6 +522,21 @@ begin
   FSynEdit_VideoSplit.Highlighter    := FJSONHL;
   FSynEdit_VideoSplit.ReadOnly       := True;
 
+  FSynEdit_VideoMerge                := TSynEdit.Create(tsMerge);
+  FSynEdit_VideoMerge.Parent         := tsMerge;
+  FSynEdit_VideoMerge.Left           := 70;
+  FSynEdit_VideoMerge.Top            := 324;
+  FSynEdit_VideoMerge.Width          := 761;
+  FSynEdit_VideoMerge.Height         := 233;
+  FSynEdit_VideoMerge.Anchors        := [akLeft, akTop, akRight, akBottom];
+  FSynEdit_VideoMerge.Gutter.Visible := False;
+  FSynEdit_VideoMerge.Font.Name      := '宋体';
+  FSynEdit_VideoMerge.Font.Size      := 12;
+  FSynEdit_VideoMerge.RightEdge      := pnlVideoConv.Width;
+  FSynEdit_VideoMerge.ScrollBars     := ssVertical;
+  FSynEdit_VideoMerge.Highlighter    := FJSONHL;
+  FSynEdit_VideoMerge.ReadOnly       := True;
+
 end;
 
 procedure TfrmFFUI.FormCreate(Sender: TObject);
@@ -679,6 +564,7 @@ begin
   { 销毁创建的第三方控件 }
   FDOSCommand.Free;
   FJSONHL.Free;
+  FSynEdit_VideoMerge.Free;
   FSynEdit_VideoSplit.Free;
   FSynEdit_VideoConv.Free;
   FSynEdit_VideoInfo.Free;
@@ -754,7 +640,7 @@ procedure TfrmFFUI.OpenVideoSplitPath;
 var
   strSavePath: String;
 begin
-  if chkSplitPath.Checked then
+  if chkSplitSamePath.Checked then
     strSavePath := ExtractFilePath(srchbxSelectVideoFile.Text)
   else
     strSavePath := srchbxSplitVideoSavePath.Text;
@@ -1029,6 +915,28 @@ begin
   pmOpen.Popup(pt.x, pt.y);
 end;
 
+procedure TfrmFFUI.srchbxSplitVideoSavePathInvokeSearch(Sender: TObject);
+var
+  strSelectedFolder: String;
+begin
+  if not SelectDirectory(TransUI('选择保存视频转换结果目录：'), TransUI('选择目录：'), strSelectedFolder) then
+    Exit;
+
+  srchbxSplitVideoSavePath.Text := strSelectedFolder;
+end;
+
+procedure TfrmFFUI.srchbxVideoConvSavePathInvokeSearch(Sender: TObject);
+var
+  strSelectedFolder: String;
+begin
+  if not SelectDirectory(TransUI('选择保存视频转换结果目录：'), TransUI('选择目录：'), strSelectedFolder) then
+    Exit;
+
+  srchbxVideoConvSavePath.Text := strSelectedFolder;
+end;
+
+{ ------------------------------------------------------------------------- 视频播放 ------------------------------------------------------------------------------- }
+
 procedure TfrmFFUI.tmrPlayVideoTimer(Sender: TObject);
 begin
   if rgPlayUI.ItemIndex = 0 then
@@ -1153,6 +1061,16 @@ begin
   FhPlayVideoWnd            := 0;
 end;
 
+{ ------------------------------------------------------------------------- 视频转换 ------------------------------------------------------------------------------- }
+
+procedure TfrmFFUI.btnAddVideoFileClick(Sender: TObject);
+begin
+  if not dlgOpenVideoFile.Execute then
+    Exit;
+
+  lstFiles.Items.Add(dlgOpenVideoFile.FileName);
+end;
+
 procedure TfrmFFUI.btnAddFolderClick(Sender: TObject);
 var
   strFolder: String;
@@ -1163,28 +1081,10 @@ begin
   FindVideoFile(strFolder);
 end;
 
-procedure TfrmFFUI.btnAddVideoFileClick(Sender: TObject);
-begin
-  if not dlgOpenVideoFile.Execute then
-    Exit;
-
-  lstFiles.Items.Add(dlgOpenVideoFile.FileName);
-end;
-
 procedure TfrmFFUI.btnDelVideoFileClick(Sender: TObject);
 begin
   if lstFiles.ItemIndex <> -1 then
     lstFiles.DeleteSelected;
-end;
-
-procedure TfrmFFUI.btnSplitPathClick(Sender: TObject);
-var
-  strSelectedFolder: String;
-begin
-  if not SelectDirectory(TransUI('选择保存视频转换结果目录：'), TransUI('选择目录：'), strSelectedFolder) then
-    Exit;
-
-  srchbxSplitVideoSavePath.Text := strSelectedFolder;
 end;
 
 procedure TfrmFFUI.btnVideoConvParamClick(Sender: TObject);
@@ -1345,6 +1245,8 @@ begin
   FDOSCommand.Stop;
 end;
 
+{ ------------------------------------------------------------------------- 视频分离 ------------------------------------------------------------------------------- }
+
 procedure TfrmFFUI.btnVideoSplitClick(Sender: TObject);
 var
   strFFMPEGPath     : String;
@@ -1370,7 +1272,7 @@ begin
   SetDllDirectory(PChar(strFFMPEGPath));
 
   { 保存目录 }
-  if chkSplitPath.Checked then
+  if chkSplitSamePath.Checked then
     strSavePath := ExtractFilePath(srchbxSelectVideoFile.Text)
   else
     strSavePath := srchbxSplitVideoSavePath.Text;
@@ -1413,6 +1315,66 @@ begin
   FDOSCommand.CommandLine := strTempCMDFileName;
   FDOSCommand.Execute;
   statInfo.SimpleText := FDOSCommand.CommandLine;
+end;
+
+{ ------------------------------------------------------------------------- 视频合并 ------------------------------------------------------------------------------- }
+procedure TfrmFFUI.btnMergeAudioAddClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(nil) do
+  begin
+    Filter := '音频流(*.wav;*.mp3;*.m3p;*.ogg;*.aac)|*.wav;*.mp3;*.m3p;*.ogg;*.aac';
+    if Execute() then
+    begin
+      lstMergeAudio.Items.Add(FileName);
+    end;
+    Free;
+  end;
+end;
+
+procedure TfrmFFUI.btnMergeAudioDelClick(Sender: TObject);
+begin
+  lstMergeAudio.DeleteSelected;
+end;
+
+procedure TfrmFFUI.btnMergeVideoAddClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(nil) do
+  begin
+    Filter := '视频流(*.yuv;*.mp4;*.h264;*.h265)|*.yuv;*.mp4;*.h264;*.h265';
+    if Execute() then
+    begin
+      lstMergeVideo.Items.Add(FileName);
+    end;
+    Free;
+  end;
+end;
+
+procedure TfrmFFUI.btnMergeVideoDelClick(Sender: TObject);
+begin
+  lstMergeVideo.DeleteSelected;
+end;
+
+procedure TfrmFFUI.btnMergeSubtitleAddClick(Sender: TObject);
+begin
+  with TOpenDialog.Create(nil) do
+  begin
+    Filter := '字幕流(*.txt;*.ass;*.srt)|*.txt;*.ass;*.srt';
+    if Execute() then
+    begin
+      lstMergeSubtitle.Items.Add(FileName);
+    end;
+    Free;
+  end;
+end;
+
+procedure TfrmFFUI.btnMergeSubtitleDelClick(Sender: TObject);
+begin
+  lstMergeSubtitle.DeleteSelected;
+end;
+
+procedure TfrmFFUI.btnMergeClick(Sender: TObject);
+begin
+  //
 end;
 
 end.

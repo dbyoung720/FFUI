@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsSplit
+    ActivePage = tsConfig
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -306,6 +306,167 @@ object frmFFUI: TfrmFFUI
     object tsMerge: TTabSheet
       Caption = #21512#24182
       ImageIndex = 4
+      DesignSize = (
+        984
+        584)
+      object lblMergeVideo: TLabel
+        Left = 70
+        Top = 41
+        Width = 52
+        Height = 13
+        Caption = #35270#39057#27969#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clBlue
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lblMergeAudio: TLabel
+        Left = 354
+        Top = 44
+        Width = 52
+        Height = 13
+        Caption = #38899#39057#27969#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clBlue
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lblMergeSubtitle: TLabel
+        Left = 646
+        Top = 41
+        Width = 52
+        Height = 13
+        Caption = #23383#24149#27969#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clBlue
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lblMergeTip: TLabel
+        Left = 20
+        Top = 12
+        Width = 75
+        Height = 15
+        Caption = #25991#20214#21253#21547#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clRed
+        Font.Height = -15
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object lstMergeVideo: TListBox
+        Left = 70
+        Top = 63
+        Width = 185
+        Height = 228
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = #23435#20307
+        Font.Style = []
+        ItemHeight = 15
+        ParentFont = False
+        TabOrder = 0
+      end
+      object lstMergeAudio: TListBox
+        Left = 354
+        Top = 63
+        Width = 185
+        Height = 228
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = #23435#20307
+        Font.Style = []
+        ItemHeight = 15
+        ParentFont = False
+        TabOrder = 1
+      end
+      object lstMergeSubtitle: TListBox
+        Left = 646
+        Top = 63
+        Width = 185
+        Height = 228
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -15
+        Font.Name = #23435#20307
+        Font.Style = []
+        ItemHeight = 15
+        ParentFont = False
+        TabOrder = 2
+      end
+      object btnMergeVideoAdd: TButton
+        Left = 256
+        Top = 63
+        Width = 49
+        Height = 25
+        Caption = #28155#21152
+        TabOrder = 3
+        OnClick = btnMergeVideoAddClick
+      end
+      object btnMergeVideoDel: TButton
+        Left = 256
+        Top = 91
+        Width = 49
+        Height = 25
+        Caption = #21024#38500
+        TabOrder = 4
+        OnClick = btnMergeVideoDelClick
+      end
+      object btnMergeAudioAdd: TButton
+        Left = 540
+        Top = 63
+        Width = 49
+        Height = 25
+        Caption = #28155#21152
+        TabOrder = 5
+        OnClick = btnMergeAudioAddClick
+      end
+      object btnMergeAudioDel: TButton
+        Left = 540
+        Top = 91
+        Width = 49
+        Height = 25
+        Caption = #21024#38500
+        TabOrder = 6
+        OnClick = btnMergeAudioDelClick
+      end
+      object btnMergeSubtitleAdd: TButton
+        Left = 832
+        Top = 63
+        Width = 49
+        Height = 25
+        Caption = #28155#21152
+        TabOrder = 7
+        OnClick = btnMergeSubtitleAddClick
+      end
+      object btnMergeSubtitleDel: TButton
+        Left = 832
+        Top = 91
+        Width = 49
+        Height = 25
+        Caption = #21024#38500
+        TabOrder = 8
+        OnClick = btnMergeSubtitleDelClick
+      end
+      object btnMerge: TButton
+        Left = 848
+        Top = 324
+        Width = 95
+        Height = 44
+        Anchors = [akTop, akRight]
+        Caption = #21512#24182
+        TabOrder = 9
+        OnClick = btnMergeClick
+      end
     end
     object tsCut: TTabSheet
       Caption = #25130#21462
@@ -377,7 +538,7 @@ object frmFFUI: TfrmFFUI
       end
       object rgUseGPU: TRadioGroup
         Left = 12
-        Top = 72
+        Top = 65
         Width = 961
         Height = 45
         Anchors = [akLeft, akTop, akRight]
@@ -398,7 +559,7 @@ object frmFFUI: TfrmFFUI
       end
       object grpVideoConv: TGroupBox
         Left = 12
-        Top = 134
+        Top = 113
         Width = 961
         Height = 237
         Anchors = [akLeft, akTop, akRight]
@@ -521,7 +682,7 @@ object frmFFUI: TfrmFFUI
         object chkConvSavePath: TCheckBox
           Left = 332
           Top = 26
-          Width = 114
+          Width = 469
           Height = 17
           Caption = #20445#23384#36335#24452#21516#25991#20214
           Checked = True
@@ -604,17 +765,17 @@ object frmFFUI: TfrmFFUI
         object srchbxVideoConvSavePath: TSearchBox
           Left = 394
           Top = 46
-          Width = 348
+          Width = 407
           Height = 21
           TabOrder = 11
           Text = 'D:\'
           Visible = False
-          OnInvokeSearch = btnSaveVideoPathClick
+          OnInvokeSearch = srchbxVideoConvSavePathInvokeSearch
         end
         object chkConvOpenSavePath: TCheckBox
           Left = 332
           Top = 103
-          Width = 410
+          Width = 265
           Height = 17
           Caption = #36716#25442#32467#26463#25171#24320#20445#23384#30446#24405
           Checked = True
@@ -625,9 +786,9 @@ object frmFFUI: TfrmFFUI
       end
       object grpSplitPath: TGroupBox
         Left = 12
-        Top = 377
-        Width = 961
-        Height = 93
+        Top = 354
+        Width = 409
+        Height = 72
         Anchors = [akLeft, akTop, akRight]
         Caption = #20998#31163#20445#23384#36335#24452#65306
         Font.Charset = GB2312_CHARSET
@@ -637,38 +798,38 @@ object frmFFUI: TfrmFFUI
         Font.Style = []
         ParentFont = False
         TabOrder = 3
-        object lblSplitPath: TLabel
-          Left = 45
-          Top = 45
+        object lblSplitSamePath: TLabel
+          Left = 208
+          Top = 26
           Width = 39
           Height = 13
           Caption = #36335#24452#65306
           Visible = False
         end
-        object chkSplitPath: TCheckBox
+        object chkSplitSamePath: TCheckBox
           Left = 28
           Top = 22
-          Width = 111
+          Width = 174
           Height = 17
           Caption = #20445#23384#36335#24452#21516#25991#20214
           Checked = True
           State = cbChecked
           TabOrder = 0
-          OnClick = chkSplitPathClick
+          OnClick = chkSplitSamePathClick
         end
         object srchbxSplitVideoSavePath: TSearchBox
-          Left = 84
-          Top = 43
-          Width = 203
+          Left = 252
+          Top = 22
+          Width = 147
           Height = 21
           TabOrder = 1
           Visible = False
-          OnInvokeSearch = btnSplitPathClick
+          OnInvokeSearch = srchbxSplitVideoSavePathInvokeSearch
         end
         object chkSplitOpenSavePath: TCheckBox
-          Left = 332
-          Top = 22
-          Width = 410
+          Left = 28
+          Top = 46
+          Width = 358
           Height = 17
           Caption = #20998#31163#32467#26463#25171#24320#20445#23384#30446#24405
           Checked = True
@@ -682,16 +843,19 @@ object frmFFUI: TfrmFFUI
         Top = 89
         Width = 113
         Height = 17
+        Hint = #26597#30475#26174#21345#26159#21542#25903#25345' GPU '#21152#36895
         Anchors = [akTop, akRight]
         Caption = 
           '<a href="https://developer.nvidia.com/video-encode-decode-gpu-su' +
           'pport-matrix">NVIDIA GPU '#21152#36895#24110#21161'</a>'
+        ParentShowHint = False
+        ShowHint = True
         TabOrder = 4
         OnLinkClick = lnklblHelpAccelGPULinkClick
       end
       object rgLanguageUI: TRadioGroup
         Left = 12
-        Top = 484
+        Top = 531
         Width = 961
         Height = 45
         Anchors = [akLeft, akTop, akRight]
@@ -704,11 +868,85 @@ object frmFFUI: TfrmFFUI
         Font.Style = []
         ItemIndex = 0
         Items.Strings = (
-          'Chinese ('#20013#25991')'
-          'English('#33521#25991')')
+          #20013#25991
+          'English')
         ParentFont = False
         TabOrder = 5
         OnClick = rgLanguageUIClick
+      end
+      object grpMergePath: TGroupBox
+        Left = 427
+        Top = 354
+        Width = 546
+        Height = 72
+        Anchors = [akLeft, akTop, akRight]
+        Caption = #21512#24182#20445#23384#36335#24452#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 6
+        object lblMergeSamePath: TLabel
+          Left = 212
+          Top = 26
+          Width = 39
+          Height = 13
+          Caption = #36335#24452#65306
+          Visible = False
+        end
+        object lblMergeFormat: TLabel
+          Left = 412
+          Top = 22
+          Width = 65
+          Height = 13
+          Caption = #21512#24182#26684#24335#65306
+        end
+        object chkMergeSamePath: TCheckBox
+          Left = 28
+          Top = 22
+          Width = 174
+          Height = 17
+          Caption = #20445#23384#36335#24452#21516#25991#20214
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+          OnClick = chkMergeSamePathClick
+        end
+        object srchbxMergeSavePath: TSearchBox
+          Left = 252
+          Top = 23
+          Width = 136
+          Height = 21
+          TabOrder = 1
+          Visible = False
+        end
+        object chkMergeOpenSavePath: TCheckBox
+          Left = 28
+          Top = 45
+          Width = 358
+          Height = 17
+          Caption = #21512#24182#32467#26463#25171#24320#20445#23384#30446#24405
+          Checked = True
+          State = cbChecked
+          TabOrder = 2
+          OnClick = chkMergeOpenSavePathClick
+        end
+        object cbbMergeFormat: TComboBox
+          Left = 418
+          Top = 39
+          Width = 106
+          Height = 21
+          Style = csDropDownList
+          ItemIndex = 0
+          TabOrder = 3
+          Text = 'H264 (*.MKV)'
+          OnChange = cbbMergeFormatChange
+          Items.Strings = (
+            'H264 (*.MKV)'
+            'H265 (*.MKV)')
+        end
       end
     end
   end
@@ -782,8 +1020,8 @@ object frmFFUI: TfrmFFUI
   object ilpgc: TImageList
     Height = 32
     Width = 32
-    Left = 104
-    Top = 148
+    Left = 308
+    Top = 360
     Bitmap = {
       494C010108000C00040020002000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       00000000000036000000280000008000000060000000010020000000000000C0
