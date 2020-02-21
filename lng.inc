@@ -90,6 +90,10 @@ begin
   btnMergeSubtitleDel.Caption := '删除';
   btnMerge.Caption            := '合并';
   lblMergeFormat.Caption      := '合并格式：';
+  btnConnectMulVideo.Caption  := '连接多个视频';
+  btnConnectMulVideo.Hint     := '将多个小视频连接成一个大的视频文件';
+  chkAddWaterMark.Caption     := '添加水印';
+  lblWatermark.Caption        := '图片路径：';
 
   rgLive.Items.Strings[0] := '磁盘文件';
   rgLive.Items.Strings[1] := 'USB摄像头';
@@ -178,6 +182,10 @@ begin
   btnMergeSubtitleDel.Caption := 'Del';
   btnMerge.Caption            := 'Merge';
   lblMergeFormat.Caption      := 'Merge format:';
+  btnConnectMulVideo.Caption  := 'Connect videos';
+  btnConnectMulVideo.Hint     := 'Connect multiple small videos into a large video file';
+  chkAddWaterMark.Caption     := 'Add watermark';
+  lblWatermark.Caption        := 'Image path：';
 
   rgLive.Items.Strings[0] := 'Disk File';
   rgLive.Items.Strings[1] := 'USB Camera';

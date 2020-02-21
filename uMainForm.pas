@@ -120,6 +120,10 @@ type
     chkMergeOpenSavePath: TCheckBox;
     lblMergeFormat: TLabel;
     cbbMergeFormat: TComboBox;
+    chkAddWaterMark: TCheckBox;
+    lblWatermark: TLabel;
+    srchbxWatermark: TSearchBox;
+    btnConnectMulVideo: TButton;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -160,6 +164,8 @@ type
     procedure btnMergeSubtitleAddClick(Sender: TObject);
     procedure btnMergeSubtitleDelClick(Sender: TObject);
     procedure cbbMergeFormatChange(Sender: TObject);
+    procedure btnConnectMulVideoClick(Sender: TObject);
+    procedure srchbxWatermarkInvokeSearch(Sender: TObject);
   private
     FlngUI             : TLangUI;
     FDOSCommand        : TDosCommand;
@@ -217,7 +223,12 @@ implementation
 {$R *.dfm}
 {$INCLUDE lng.inc}
 
-{ 更改界面语言 }
+const
+  c_strAudioFormat    = '*.3gp;*.aac;*.ac3;*.dts;*.mp2;*.mp3;*.m3p;*.wav;*.wma;*.ogg';
+  c_strVideoFormat    = '*.AVI;*.FLV;*.M2V;*.MKV;*.MOV;*.MPG;*.MP4;*.H264;*.H265;*.RMVB;*.TS;*.VOB;*.WMV;*.YUV';
+  c_strSubtitleFormat = '*.txt;*.ass;*.srt';
+
+  { 更改界面语言 }
 procedure TfrmFFUI.ChangeLanguageUI;
 begin
   case FlngUI of
@@ -543,6 +554,8 @@ begin
 
   { 加载系统参数 }
   LoadConfig;
+
+  dlgOpenVideoFile.Filter := Ifthen(FlngUI = lngChinese, '视频文件(', 'Video file(') + c_strVideoFormat + ')|' + c_strVideoFormat;
 end;
 
 procedure TfrmFFUI.FormDestroy(Sender: TObject);
@@ -835,6 +848,7 @@ end;
 { 打开文件 }
 procedure TfrmFFUI.mniOpenFileClick(Sender: TObject);
 begin
+  dlgOpenVideoFile.Filter := Ifthen(FlngUI = lngChinese, '视频文件(', 'Video file(') + c_strVideoFormat + ')|' + c_strVideoFormat;
   if not dlgOpenVideoFile.Execute then
     Exit;
 
@@ -1273,7 +1287,7 @@ procedure TfrmFFUI.btnMergeAudioAddClick(Sender: TObject);
 begin
   with TOpenDialog.Create(nil) do
   begin
-    Filter := '音频流(*.wav;*.mp3;*.m3p;*.ogg;*.aac;*.ac3)|*.wav;*.mp3;*.m3p;*.ogg;*.aac;*.ac3';
+    Filter := Ifthen(FlngUI = lngChinese, '音频流(', 'Audio file(') + c_strAudioFormat + ')|' + c_strAudioFormat;
     if Execute() then
     begin
       lstMergeAudio.Items.Add(FileName);
@@ -1291,7 +1305,7 @@ procedure TfrmFFUI.btnMergeVideoAddClick(Sender: TObject);
 begin
   with TOpenDialog.Create(nil) do
   begin
-    Filter := '视频流(*.yuv;*.mp4;*.h264;*.h265)|*.yuv;*.mp4;*.h264;*.h265';
+    Filter := Ifthen(FlngUI = lngChinese, '视频流(', 'Video file(') + c_strVideoFormat + ')|' + c_strVideoFormat;
     if Execute() then
     begin
       lstMergeVideo.Items.Add(FileName);
@@ -1309,7 +1323,7 @@ procedure TfrmFFUI.btnMergeSubtitleAddClick(Sender: TObject);
 begin
   with TOpenDialog.Create(nil) do
   begin
-    Filter := '字幕流(*.txt;*.ass;*.srt)|*.txt;*.ass;*.srt';
+    Filter := Ifthen(FlngUI = lngChinese, '字幕流(', 'Subtitle file(') + c_strSubtitleFormat + ')|' + c_strSubtitleFormat;
     if Execute() then
     begin
       lstMergeSubtitle.Items.Add(FileName);
@@ -1323,9 +1337,78 @@ begin
   lstMergeSubtitle.DeleteSelected;
 end;
 
-procedure TfrmFFUI.btnMergeClick(Sender: TObject);
+procedure TfrmFFUI.srchbxWatermarkInvokeSearch(Sender: TObject);
 begin
   //
 end;
 
+procedure TfrmFFUI.btnMergeClick(Sender: TObject);
+begin
+  // 视频添加水印
+  // ffmpeg -i input.mp4 -i logo.jpg -filter_complex [0:v][1:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[out] -map [out] -map 0:a -codec:a copy output.mp4
+  // main_w-overlay_w-10 视频的宽度-水印的宽度-水印边距；
+
+  // 音视频合成
+  // ffmpeg -y –i input.mp4 –i input.mp3 –vcodec copy –acodec copy output.mp4
+  // -y 覆盖输出文件
+
+  // 截取视频局部                                                ffmpeg -i in.mp4 -filter:v "crop=out_w:out_h:x:y" out.mp4
+  // 截取部分视频，从[80,60]的位置开始，截取宽200，高100的视频   ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
+  // 截取右下角的四分之一                                        ffmpeg -i in.mp4 -filter:v "crop=in_w/2:in_h/2:in_w/2:in_h/2" -c:a copy out.mp4
+  // 截去底部40像素高度                                          ffmpeg -i in.mp4 -filter:v "crop=in_w:in_h-40" -c:a copy out.mp4
+
+  // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental                       output.mp4
+  // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental -map 0:v:0 -map 1:a:0 output.mp4    <替换视频中的音频>
+
+end;
+
+procedure TfrmFFUI.btnConnectMulVideoClick(Sender: TObject);
+begin
+  // ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
+
+  // ffmpeg -i 1.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 1.ts
+  // ffmpeg -i 2.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 2.ts
+  // ffmpeg -i "concat:1.ts|2.ts" -acodec copy -vcodec copy -absf aac_adtstoasc output.mp4
+
+
+  // ffmpeg -i input1.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input1.ts
+  // ffmpeg -i input2.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input2.ts
+  // ffmpeg -i input3.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input3.ts
+  // ffmpeg -i "concat:input1.ts|input2.ts|input3.ts" -c copy -bsf:a aac_adtstoasc -movflags +faststart output.mp4
+
+  // ffmpeg -i input1.mp4 -i input2.webm -i input3.avi -filter_complex '[0:0] [0:1] [1:0] [1:1] [2:0] [2:1] concat=n=3:v=1:a=1 [v] [a]' -map '[v]' -map '[a]' <编码器选项> output.mkv
+end;
+
+(*
+  增加字幕流
+  ffmpeg -i video.avi -i sub.ass -map 0:0 -map 0:1 -map 1 -c:a copy -c:v copy -c:s copy video.mkv
+
+  提取字幕流
+  1）原始文本输出
+  ffmpeg -i output.mkv -an -vn -bsf:s mov2textsub -scodec copy -f rawvideo sub.txt
+  ffmpeg -i output.mkv -an -vn -c:s copy -f rawvideo -map 0:s sub2.txt
+  2）ass格式输出
+  ffmpeg -i output.mkv -an -vn -scodec copy sub3.ass
+
+
+  所谓加硬字幕是把字幕加到视频流中，不是单独的字幕流，命令如下：
+  ffmpeg -i demo.mp4 -vf ass=subtitle.ass output.mp4
+  或
+  ffmpeg -i demo.mp4 -vf subtitles=sample.srt out.mp4
+
+
+  添加水印
+  在固定的位置添加水印
+  ffmpeg -i test.mp4 -i test.png -filter_complex “overlay=10:10” watermark.mp4
+  在test.mp4左上角10,10的位置添加水印图片test.png，同时在根目录产出一个watermark.mp4的视频
+
+  自适应添加水印
+  ffmpeg -i test.mp4 -i test.png -filter_complex “overlay=x=main_h-10:main_w-10” watermark.mp4
+  在test.mp4距离右下角10，10的位置添加水印，main_h代表视频的高度，main_w代表视频的宽度
+
+  同时为视频添加水印和字幕
+  ffmpeg -i test.mp4 -i test.png -filter_complex “overlay=x=main_w-273:y=main_h-113,subtitles=test.srt:force_style=‘Fontsize=11’” output.mp4
+  给test.mp4添加字幕和水印，同时字幕字体的大小为11px，如果还需要设置字幕的位置，字体，阴影等可以直接在Fontsize=11后面直接拼接即可。Shadow=0,MarginV=20代表阴影为1，距离下边距为20px
+
+*)
 end.

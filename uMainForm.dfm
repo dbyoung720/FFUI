@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsConv
+    ActivePage = tsMerge
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -306,6 +306,7 @@ object frmFFUI: TfrmFFUI
     object tsMerge: TTabSheet
       Caption = #21512#24182
       ImageIndex = 4
+      ExplicitLeft = 0
       DesignSize = (
         984
         584)
@@ -360,6 +361,13 @@ object frmFFUI: TfrmFFUI
         Font.Name = #23435#20307
         Font.Style = []
         ParentFont = False
+      end
+      object lblWatermark: TLabel
+        Left = 837
+        Top = 250
+        Width = 60
+        Height = 13
+        Caption = #22270#29255#36335#24452#65306
       end
       object lstMergeVideo: TListBox
         Left = 70
@@ -466,6 +474,38 @@ object frmFFUI: TfrmFFUI
         Caption = #21512#24182
         TabOrder = 9
         OnClick = btnMergeClick
+      end
+      object chkAddWaterMark: TCheckBox
+        Left = 837
+        Top = 226
+        Width = 99
+        Height = 17
+        Caption = #28155#21152#27700#21360
+        Checked = True
+        State = cbChecked
+        TabOrder = 10
+        OnClick = chkMergeSamePathClick
+      end
+      object srchbxWatermark: TSearchBox
+        Left = 837
+        Top = 270
+        Width = 132
+        Height = 21
+        TabOrder = 11
+        OnInvokeSearch = srchbxWatermarkInvokeSearch
+      end
+      object btnConnectMulVideo: TButton
+        Left = 848
+        Top = 374
+        Width = 95
+        Height = 44
+        Hint = #23558#22810#20010#23567#35270#39057#36830#25509#25104#19968#20010#22823#30340#35270#39057#25991#20214
+        Anchors = [akTop, akRight]
+        Caption = #36830#25509#22810#20010#35270#39057
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 12
+        OnClick = btnConnectMulVideoClick
       end
     end
     object tsCut: TTabSheet
@@ -978,9 +1018,6 @@ object frmFFUI: TfrmFFUI
     SimplePanel = True
   end
   object dlgOpenVideoFile: TOpenDialog
-    Filter = 
-      #35270#39057#25991#20214'(*.AVI;*.MP4;*.MKV;*.MOV;*.RMVB;*.VOB)|*.AVI;*.MP4;*.MKV;*.M' +
-      'OV;*.RMVB;*.VOB'
     Left = 392
     Top = 355
   end
