@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsInfo
+    ActivePage = tsPlay
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -91,6 +91,15 @@ object frmFFUI: TfrmFFUI
           Enabled = False
           TabOrder = 2
           OnClick = btnVideoPlayStopClick
+        end
+        object btnPlayUSBCamera: TButton
+          Left = 832
+          Top = 5
+          Width = 135
+          Height = 29
+          Caption = #25773#25918' USB '#25668#20687#22836
+          TabOrder = 3
+          OnClick = btnVideoPlayPlayClick
         end
       end
       object pnlVideo: TPanel
@@ -677,9 +686,9 @@ object frmFFUI: TfrmFFUI
       end
       object pnlWeb: TPanel
         Left = 168
-        Top = 9
+        Top = 80
         Width = 804
-        Height = 564
+        Height = 493
         Anchors = [akLeft, akTop, akRight, akBottom]
         BevelOuter = bvNone
         BorderStyle = bsSingle
@@ -688,6 +697,38 @@ object frmFFUI: TfrmFFUI
         ParentCtl3D = False
         ShowCaption = False
         TabOrder = 1
+      end
+      object grpLiveAddress: TGroupBox
+        Left = 168
+        Top = 3
+        Width = 441
+        Height = 65
+        Caption = #30452#25773#22320#22336#65306
+        TabOrder = 2
+        object edtIP: TEdit
+          Left = 24
+          Top = 24
+          Width = 405
+          Height = 24
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Tahoma'
+          Font.Style = []
+          ParentFont = False
+          TabOrder = 0
+          Text = 'rtmp://192.168.3.100:4444'
+        end
+      end
+      object btnLive: TButton
+        Left = 828
+        Top = 8
+        Width = 144
+        Height = 60
+        Anchors = [akTop, akRight]
+        Caption = #24320#22987#30452#25773
+        TabOrder = 3
+        OnClick = btnLiveClick
       end
     end
     object tsConfig: TTabSheet

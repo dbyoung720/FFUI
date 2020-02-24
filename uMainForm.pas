@@ -144,6 +144,10 @@ type
     chkCutSamePath: TCheckBox;
     srchbxCutVideoSavePath: TSearchBox;
     chkCutOpenSavePath: TCheckBox;
+    grpLiveAddress: TGroupBox;
+    edtIP: TEdit;
+    btnLive: TButton;
+    btnPlayUSBCamera: TButton;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -192,6 +196,7 @@ type
     procedure btnCutClick(Sender: TObject);
     procedure chkCutSamePathClick(Sender: TObject);
     procedure srchbxMergeVideoSavePathInvokeSearch(Sender: TObject);
+    procedure btnLiveClick(Sender: TObject);
   private
     FlngUI             : TLangUI;
     FDOSCommand        : TDosCommand;
@@ -213,6 +218,8 @@ type
     function TransUI(const strLang: string): String;
     { 创建语法高亮的 SynEdit 控件 }
     procedure CreateSynEdit;
+    { 检查本机是否有 USB 摄像头 }
+    procedure CheckUSBCamera;
     { 加载系统参数 }
     procedure LoadConfig;
     { 保存系统参数 }
@@ -620,6 +627,12 @@ begin
   FSynEdit_VideoCut.ReadOnly       := True;
 end;
 
+{ 检查本机是否有 USB 摄像头 }
+procedure TfrmFFUI.CheckUSBCamera;
+begin
+
+end;
+
 procedure TfrmFFUI.FormCreate(Sender: TObject);
 begin
   { 创建第三方控件 }
@@ -635,6 +648,9 @@ begin
 
   { 加载系统参数 }
   LoadConfig;
+
+  { 检查本机是否有 USB 摄像头 }
+  CheckUSBCamera;
 
   dlgOpenVideoFile.Filter := Ifthen(FlngUI = lngChinese, '视频文件(', 'Video file(') + c_strVideoFormat + ')|' + c_strVideoFormat;
 end;
@@ -1710,6 +1726,38 @@ begin
   FStatStyle := ssCut;
   FSynEdit_VideoCut.Clear;
   btnCut.Enabled := False;
+end;
+
+{ ------------------------------------------------------------------------- 视频直播 ------------------------------------------------------------------------------- }
+
+procedure TfrmFFUI.btnLiveClick(Sender: TObject);
+begin
+  // ffmpeg -devices
+  // ffmpeg -list_devices true -f dshow -i dummy
+  // ffmpeg -list_options true -f dshow -i video="Integrated Camera"
+
+  // 推流你得有个流媒体服务，个人测试用小水管：rtmp://eguid.cc:1935/rtmp/test（小水管，请尽量错开时间使用，另切记推流视频码率不要太高，避免占用太多带宽）
+
+  // https://blog.csdn.net/leixiaohua1020/article/details/38284961#
+
+  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f h264        udp://233.233.233.223:6666
+  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec mpeg2video                                      -f mpeg2video  udp://233.233.233.223:6666
+  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f rtp rtp://233.233.233.223:6666>test.sdp
+  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv rtmp://localhost/oflaDemo/livestream
+
+  // ffmpeg -f dshow -i video="screen-capture-recorder" -r 5 -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f h264 udp://233.233.233.223:6666
+  // ffmpeg -f dshow -i video="screen-capture-recorder" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f rtp rtp://233.233.233.223:6666>test.sdp
+  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv rtmp://localhost/oflaDemo/livestream
+
+  // ffmpeg -f dshow   -i video="Integrated Camera" -vcodec libx264 -acodec copy -preset:v ultrafast -tune:v zerolatency -f flv rtmp://eguid.cc:1935/rtmp/eguid
+  // ffmpeg -f gdigrab -i desktop                   -vcodec libx264              -preset:v ultrafast -tune:v zerolatency -f flv rtmp://eguid.cc:1935/rtmp/destop
+
+  // ffplay -vcodec mpeg2video udp://233.233.233.223:6666
+
+  // 注1：考虑到提高libx264的编码速度，添加了-preset:v ultrafast和-tune:v zerolatency两个选项。
+  // 注2：结尾添加“>test.sdp”可以在发布的同时生成sdp文件。该文件可以用于该视频流的播放。如下命令即可播放：
+  // ffplay test.sdp
+
 end;
 
 end.
