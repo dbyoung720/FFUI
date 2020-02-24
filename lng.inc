@@ -132,6 +132,7 @@ begin
   lblComment.Caption                   := '注释：';
   btnSaveConvParam.Caption             := '保存';
   btnSaveConvParamAndStartConv.Caption := '保存并开始转换';
+  chkConvAutoSearchSubtitle.Caption    := '自动搜索当前目录下同文件的字幕文件';
 
   grpSplitPath.Caption         := '分离保存路径：';
   chkSplitSamePath.Caption     := '保存路径同文件';
@@ -239,22 +240,21 @@ begin
   lnklblHelpAccelGPU.Caption := '<a href="https://developer.nvidia.com/video-encode-decode-gpu-support-matrix">NVIDIA GPU Help</a>';
   lnklblHelpAccelGPU.Hint    := 'Check whether the graphics card supports GPU acceleration';
 
-  grpVideoConv.Caption        := 'Convert format:';
-  lblConvTip.Caption          := 'Convert to:';
-  chkVideoSize.Caption        := 'Same Video Size';
-  lblVideoWidth.Caption       := 'W:';
-  lblVideoHeight.Caption      := 'H:';
-  chkConvSavePath.Caption     := 'Save path same as file';
-  lblSaveVideoPath.Caption    := 'Path:';
-  chkConvOpenSavePath.Caption := 'Open save path after finish convert';
-
-  lblVideoInfo.Caption                 := 'Video Info:';
-  lblTitle.Caption                     := 'Title:';
-  lblArtist.Caption                    := 'Artist:';
-  lblGenre.Caption                     := 'Genre:';
-  lblComment.Caption                   := 'Comment:';
-  btnSaveConvParam.Caption             := 'Save';
-  btnSaveConvParamAndStartConv.Caption := 'Save And Convert';
+  grpVideoConv.Caption              := 'Convert format:';
+  lblConvTip.Caption                := 'Convert to:';
+  chkVideoSize.Caption              := 'Same Video Size';
+  lblVideoWidth.Caption             := 'W:';
+  lblVideoHeight.Caption            := 'H:';
+  chkConvSavePath.Caption           := 'Save path same as file';
+  lblSaveVideoPath.Caption          := 'Path:';
+  chkConvOpenSavePath.Caption       := 'Open save path after finish convert';
+  lblVideoInfo.Caption              := 'Video Info:';
+  lblTitle.Caption                  := 'Title:';
+  lblArtist.Caption                 := 'Artist:';
+  lblGenre.Caption                  := 'Genre:';
+  lblComment.Caption                := 'Comment:';
+  btnSaveConvParam.Caption          := 'Save';
+  chkConvAutoSearchSubtitle.Caption := 'Automatically search subtitle files of the same file in the current directory';
 
   grpSplitPath.Caption         := 'Split save path:';
   chkSplitSamePath.Caption     := 'Save path same as file';

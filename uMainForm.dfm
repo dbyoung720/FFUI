@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsPlay
+    ActivePage = tsMerge
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -1005,6 +1005,17 @@ object frmFFUI: TfrmFFUI
           State = cbChecked
           TabOrder = 12
           OnClick = chkConvOpenSavePathClick
+        end
+        object chkConvAutoSearchSubtitle: TCheckBox
+          Left = 332
+          Top = 126
+          Width = 613
+          Height = 17
+          Caption = #33258#21160#25628#32034#24403#21069#30446#24405#19979#21516#25991#20214#30340#23383#24149#25991#20214
+          Checked = True
+          State = cbChecked
+          TabOrder = 13
+          OnClick = chkConvSavePathClick
         end
       end
       object grpSplitPath: TGroupBox

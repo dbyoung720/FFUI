@@ -148,6 +148,7 @@ type
     edtIP: TEdit;
     btnLive: TButton;
     btnPlayUSBCamera: TButton;
+    chkConvAutoSearchSubtitle: TCheckBox;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -318,6 +319,9 @@ begin
       edtGenre.Text   := ReadString('Conv', 'Genre', 'Video');
       edtComment.Text := ReadString('Conv', 'Comment', 'dbyoung@sina.com');
 
+      { 是否自动搜索字幕文件 }
+      chkConvAutoSearchSubtitle.Checked := ReadBool('Conv', 'Subtitle', True);
+
       { 视频分离路径 }
       chkSplitSamePath.Checked := ReadBool('Split', 'SamePath', True);
       if not chkSplitSamePath.Checked then
@@ -358,6 +362,7 @@ begin
   begin
     WriteInteger('Main', 'PlayUI', rgPlayUI.ItemIndex);
     WriteInteger('Main', 'UseGPU', rgUseGPU.ItemIndex);
+
     WriteInteger('Conv', 'Format', cbbConv.ItemIndex);
     WriteBool('Conv', 'SameSize', chkVideoSize.Checked);
     WriteBool('Conv', 'SamePath', chkConvSavePath.Checked);
@@ -386,6 +391,9 @@ begin
     WriteString('Conv', 'Artist', edtArtist.Text);
     WriteString('Conv', 'Genre', edtGenre.Text);
     WriteString('Conv', 'Comment', edtComment.Text);
+
+    { 是否在当前目录下自动搜索字幕文件 }
+    WriteBool('Conv', 'Subtitle', chkConvAutoSearchSubtitle.Checked);
 
     { 分离保存路径 }
     WriteBool('Split', 'SamePath', chkSplitSamePath.Checked);
@@ -1253,6 +1261,18 @@ begin
   pgcAll.ActivePage := tsConfig;
 end;
 
+// F:\Green\Tools\VideoProc\ffmpeg.exe  -hide_banner -y -noautorotate
+// -i "F:\VIDEO\请回答1988 蓝光版\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.mkv"
+// -i C:\Users\dbyoung\AppData\Roaming\VideoProc\temp_P1XkOA\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.ass
+// -max_muxing_queue_size 1024
+// -c:v h264_nvenc -profile:v main -level:v 4.2 -pix_fmt yuv420p -rc vbr -cq 22 -qmin 5 -qmax 30 -g 250 -map 0:0
+// -c:a aac -b:a 128k -ar 44100 -ac 2 -map 0:1 -metadata:s:a:0 language=kor
+// -c:s:0 mov_text -map 1 -metadata:s:s:0 language=zho -t 300 -f mp4 -map_chapters -1
+// -metadata title=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS
+// -metadata artist=VideoProc -metadata genre=视频
+// -metadata comment=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS
+// E:\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.mp4
+
 { 开始视频转换 }
 procedure TfrmFFUI.btnVideoStartConvClick(Sender: TObject);
 const
@@ -1261,7 +1281,7 @@ const
   c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    %s %s -y "%s"';
   c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx265    %s %s -y "%s"';
   c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v flv        %s %s -y "%s"';
-  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc -profile:v main -level:v 4.2 -pix_fmt yuv420p %s %s -y "%s"';
   c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v nvenc_hevc %s %s -y "%s"';
 var
   strFFMPEGPath      : String;
@@ -1526,6 +1546,17 @@ begin
   end;
 end;
 
+// F:\Green\Tools\VideoProc\ffmpeg.exe  -hide_banner -y -noautorotate
+// -i D:\Temp\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00.mp4
+// -i C:\Users\dbyoung\AppData\Roaming\VideoProc\temp_P1XkOA\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.ass -max_muxing_queue_size 1024
+// -c:v h264_nvenc -profile:v main -level:v 4.2 -pix_fmt yuv420p -rc vbr -cq 22 -qmin 5 -qmax 30 -g 250 -map 0:0 -an
+// -c:s:0 mov_text -map 1 -metadata:s:s:0 language=ave -t 300 -f mp4 -map_chapters -1
+// -metadata title=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00
+// -metadata artist=VideoProc
+// -metadata genre=视频
+// -metadata comment=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00
+// E:\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00.mp44
+
 procedure TfrmFFUI.btnMergeClick(Sender: TObject);
 var
   I                    : Integer;
@@ -1592,13 +1623,13 @@ begin
     if strWaterMark <> '' then
     begin
       { 有水印 }
-      Add(Format('"%s\ffmpeg" -y %s %s %s %s %s %s %s', [strFFMPEGPath, strVideoStreamFile, strAudioStreamFile, strSubtitleStreamFile, strVideoStreamCopy, strAudioStreamCopy, strSubtitleStreamCopy, strTempVideoFileName]));
+      Add(Format('"%s\ffmpeg" -y %s %s %s %s %s %s "%s"', [strFFMPEGPath, strVideoStreamFile, strAudioStreamFile, strSubtitleStreamFile, strVideoStreamCopy, strAudioStreamCopy, strSubtitleStreamCopy, strTempVideoFileName]));
       Add(Format('"%s\ffmpeg" -y -i "%s" -i "%s" -filter_complex "overlay=%s:%s" "%s"', [strFFMPEGPath, strTempVideoFileName, srchbxWatermark.Text, edtWatchMarkLeftValue.Text, edtWatchMarkTopValue.Text, strOutFileName]));
     end
     else
     begin
       { 无水印 }
-      Add(Format('"%s\ffmpeg" -y %s %s %s %s %s %s %s', [strFFMPEGPath, strVideoStreamFile, strAudioStreamFile, strSubtitleStreamFile, strVideoStreamCopy, strAudioStreamCopy, strSubtitleStreamCopy, strOutFileName]));
+      Add(Format('"%s\ffmpeg" -y %s %s %s %s %s %s "%s"', [strFFMPEGPath, strVideoStreamFile, strAudioStreamFile, strSubtitleStreamFile, strVideoStreamCopy, strAudioStreamCopy, strSubtitleStreamCopy, strOutFileName]));
     end;
     SaveToFile(strMergeCMDFileName);
     Free;
