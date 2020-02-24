@@ -17,6 +17,8 @@ begin
       Result := 'Must be select a folder, save split'
     else if SameText(strLang, '选择保存视频转换结果目录：') then
       Result := 'select a folder, save convert：'
+    else if SameText(strLang, '选择保存视频截取结果目录') then
+      Result := 'select a folder, save cut：'
     else if SameText(strLang, '选择目录：') then
       Result := 'select folder：'
     else if SameText(strLang, '选择一个目录，目录下包含视频文件') then
@@ -37,6 +39,14 @@ begin
       Result := 'Video files must be added before conversion'
     else if SameText(strLang, '必须先打开一个视频文件，再进行视频分离') then
       Result := 'A video file must be opened before video split'
+    else if SameText(strLang, '必须先打开一个视频文件或多个音频，再进行合并') then
+      Result := 'You must open a add file or multiple audio files before merging'
+    else if SameText(strLang, '水印文件名不能为空，并且坐标不能为空') then
+      Result := 'Watermark file name cannot be empty and coordinates cannot be empty'
+    else if SameText(strLang, '必须先添加多个视频文件，再进行连接') then
+      Result := 'Multiple video files must be added before connecting'
+    else if SameText(strLang, '必须先打开一个视频文件') then
+      Result := 'Must be open a video file'
   end
   else
   begin
@@ -128,10 +138,28 @@ begin
   lblSplitSamePath.Caption     := '路径：';
   chkSplitOpenSavePath.Caption := '分离结束打开保存目录';
 
+  rgCut.Caption             := '截取类型：';
+  rgCut.Items[0]            := '包含音视频';
+  rgCut.Items[1]            := '只有视频';
+  rgCut.Items[2]            := '只有音频';
+  grpCutTime.Caption        := '截取时间：';
+  lblCutStartTime.Caption   := '开始时间：';
+  lblCutEndTime.Caption     := '结束时间：';
+  chkCutToImage.Caption     := '截取为图片';
+  grpCutToImage.Caption     := '图片：';
+  lblCutImageFormat.Caption := '图片格式：';
+  btnCut.Caption            := '截取';
+
   grpMergePath.Caption         := '合并保存路径：';
   chkMergeSamePath.Caption     := '保存路径同文件';
   lblMergeSamePath.Caption     := '路径：';
   chkMergeOpenSavePath.Caption := '合并结束打开保存目录';
+  lblMergeFormat.Caption       := '合并后的格式：';
+
+  grpCutConfig.Caption        := '截取保存路径：';
+  chkCutSamePath.Caption      := '保存路径同文件';
+  lblCutVideoSavePath.Caption := '路径：';
+  chkCutOpenSavePath.Caption  := '截取结束打开保存目录';
 
   rgLanguageUI.Caption := '界面语言：';
 end;
@@ -143,7 +171,7 @@ begin
   mniOpenWebStream.Caption  := 'Open stream...';
   mniCopyDosCommand.Caption := 'Copy to clipbrd';
 
-  lblVideoFile.Caption := 'Open File/Folder/Stream：';
+  lblVideoFile.Caption := 'Open File/Folder/Stream:';
   tsInfo.Caption       := 'Info';
   tsPlay.Caption       := 'Play';
   tsConv.Caption       := 'Conv';
@@ -164,20 +192,20 @@ begin
   btnVideoStartConv.Caption := 'Convert';
   btnVideoStopConv.Caption  := 'Stop convert';
 
-  lblVideoSplitTip.Caption      := 'File include：';
+  lblVideoSplitTip.Caption      := 'File include:';
   lblVidoeSplitVideo.Caption    := 'Video:';
   lblVidoeSplitAudio.Caption    := 'Audio:';
   lblVidoeSplitSubtitle.Caption := 'Subtitle:';
   btnVideoSplit.Caption         := 'Split';
 
-  lblMergeTip.Caption         := 'File include：';
-  lblMergeVideo.Caption       := 'Video stream：';
+  lblMergeTip.Caption         := 'File include:';
+  lblMergeVideo.Caption       := 'Video stream:';
   btnMergeVideoAdd.Caption    := 'Add';
   btnMergeVideoDel.Caption    := 'Del';
-  lblMergeAudio.Caption       := 'Audio stream：';
+  lblMergeAudio.Caption       := 'Audio stream:';
   btnMergeAudioAdd.Caption    := 'Add';
   btnMergeAudioDel.Caption    := 'Del';
-  lblMergeSubtitle.Caption    := 'Subtitle stream：';
+  lblMergeSubtitle.Caption    := 'Subtitle stream:';
   btnMergeSubtitleAdd.Caption := 'Add';
   btnMergeSubtitleDel.Caption := 'Del';
   btnMerge.Caption            := 'Merge';
@@ -185,30 +213,42 @@ begin
   btnConnectMulVideo.Caption  := 'Connect videos';
   btnConnectMulVideo.Hint     := 'Connect multiple small videos into a large video file';
   chkAddWaterMark.Caption     := 'Add watermark';
-  lblWatermark.Caption        := 'Image path：';
+  lblWatermark.Caption        := 'Image path:';
+
+  rgCut.Caption             := 'Cut type:';
+  rgCut.Items[0]            := 'All';
+  rgCut.Items[1]            := 'Only video';
+  rgCut.Items[2]            := 'Only audio';
+  grpCutTime.Caption        := 'Cut time:';
+  lblCutStartTime.Caption   := 'Start time:';
+  lblCutEndTime.Caption     := 'End   time:';
+  chkCutToImage.Caption     := 'Cut to image';
+  grpCutToImage.Caption     := 'Image:';
+  lblCutImageFormat.Caption := 'Format:';
+  btnCut.Caption            := 'Cut';
 
   rgLive.Items.Strings[0] := 'Disk File';
   rgLive.Items.Strings[1] := 'USB Camera';
   rgLive.Items.Strings[2] := 'IP Camera';
   rgLive.Items.Strings[3] := 'Desktop';
 
-  rgPlayUI.Caption           := 'Video library for play：';
-  rgUseGPU.Caption           := 'Use GPU Accelerate：';
+  rgPlayUI.Caption           := 'Video library for play:';
+  rgUseGPU.Caption           := 'Use GPU Accelerate:';
   rgUseGPU.Items.Strings[0]  := 'Yes(NV GF1050 above,Drivers>436.15)';
   rgUseGPU.Items.Strings[1]  := 'No';
   lnklblHelpAccelGPU.Caption := '<a href="https://developer.nvidia.com/video-encode-decode-gpu-support-matrix">NVIDIA GPU Help</a>';
   lnklblHelpAccelGPU.Hint    := 'Check whether the graphics card supports GPU acceleration';
 
-  grpVideoConv.Caption        := 'Convert format：';
-  lblConvTip.Caption          := 'Convert to：';
+  grpVideoConv.Caption        := 'Convert format:';
+  lblConvTip.Caption          := 'Convert to:';
   chkVideoSize.Caption        := 'Same Video Size';
-  lblVideoWidth.Caption       := 'W：';
-  lblVideoHeight.Caption      := 'H：';
+  lblVideoWidth.Caption       := 'W:';
+  lblVideoHeight.Caption      := 'H:';
   chkConvSavePath.Caption     := 'Save path same as file';
-  lblSaveVideoPath.Caption    := 'Path：';
+  lblSaveVideoPath.Caption    := 'Path:';
   chkConvOpenSavePath.Caption := 'Open save path after finish convert';
 
-  lblVideoInfo.Caption                 := 'Video Info：';
+  lblVideoInfo.Caption                 := 'Video Info:';
   lblTitle.Caption                     := 'Title:';
   lblArtist.Caption                    := 'Artist:';
   lblGenre.Caption                     := 'Genre:';
@@ -216,15 +256,21 @@ begin
   btnSaveConvParam.Caption             := 'Save';
   btnSaveConvParamAndStartConv.Caption := 'Save And Convert';
 
-  grpSplitPath.Caption         := 'Split save path：';
+  grpSplitPath.Caption         := 'Split save path:';
   chkSplitSamePath.Caption     := 'Save path same as file';
-  lblSplitSamePath.Caption     := 'Path：';
+  lblSplitSamePath.Caption     := 'Path:';
   chkSplitOpenSavePath.Caption := 'Open save path after finish split';
 
-  grpMergePath.Caption         := 'Merge save path：';
+  grpMergePath.Caption         := 'Merge save path:';
   chkMergeSamePath.Caption     := 'Save path same as file';
-  lblMergeSamePath.Caption     := 'Path：';
+  lblMergeSamePath.Caption     := 'Path:';
   chkMergeOpenSavePath.Caption := 'Open save path after finish Merge';
+  lblMergeFormat.Caption       := 'Combined format:';
 
-  rgLanguageUI.Caption := 'Language UI：';
+  grpCutConfig.Caption        := 'Cut save path：';
+  chkCutSamePath.Caption      := 'Save path same as file';
+  lblCutVideoSavePath.Caption := 'Path：';
+  chkCutOpenSavePath.Caption  := 'Open save path after finish cut';
+
+  rgLanguageUI.Caption := 'Language UI:';
 end;

@@ -3,17 +3,17 @@ unit uMainForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList,
+  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList, System.DateUtils,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl, Vcl.ImgList,
   {第三方控件}
-  SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI;
+  SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI, Vcl.ExtDlgs;
 
 type
   { 打开文件方式：文件/文件夹/网络视频流地址 }
   TFileStyle = (fsFile, fsFolder, fsStream);
 
   { 视频操作状态 }
-  TStatStyle = (ssBlank, ssInfo, ssPaly, ssConv, ssSplit, ssMerge, ssLine);
+  TStatStyle = (ssBlank, ssInfo, ssPaly, ssConv, ssSplit, ssMerge, ssCut, ssLive);
 
   { 视频流、音频流、字幕流、转换 }
   TVideoStyle = (vsVideo, vsAudio, vsSubtitle, vsConv);
@@ -116,7 +116,7 @@ type
     grpMergePath: TGroupBox;
     lblMergeSamePath: TLabel;
     chkMergeSamePath: TCheckBox;
-    srchbxMergeSavePath: TSearchBox;
+    srchbxMergeVideoSavePath: TSearchBox;
     chkMergeOpenSavePath: TCheckBox;
     lblMergeFormat: TLabel;
     cbbMergeFormat: TComboBox;
@@ -124,6 +124,26 @@ type
     lblWatermark: TLabel;
     srchbxWatermark: TSearchBox;
     btnConnectMulVideo: TButton;
+    lblWatchMarkLeft: TLabel;
+    lblWatchMarkTop: TLabel;
+    edtWatchMarkTopValue: TEdit;
+    edtWatchMarkLeftValue: TEdit;
+    rgCut: TRadioGroup;
+    grpCutToImage: TGroupBox;
+    cbbCutImage: TComboBox;
+    lblCutImageFormat: TLabel;
+    grpCutTime: TGroupBox;
+    lblCutStartTime: TLabel;
+    lblCutEndTime: TLabel;
+    edtCutStartTime: TEdit;
+    edtCutEndTime: TEdit;
+    chkCutToImage: TCheckBox;
+    btnCut: TButton;
+    grpCutConfig: TGroupBox;
+    lblCutVideoSavePath: TLabel;
+    chkCutSamePath: TCheckBox;
+    srchbxCutVideoSavePath: TSearchBox;
+    chkCutOpenSavePath: TCheckBox;
     procedure FormResize(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure srchbxSelectVideoFileInvokeSearch(Sender: TObject);
@@ -166,6 +186,12 @@ type
     procedure cbbMergeFormatChange(Sender: TObject);
     procedure btnConnectMulVideoClick(Sender: TObject);
     procedure srchbxWatermarkInvokeSearch(Sender: TObject);
+    procedure chkAddWaterMarkClick(Sender: TObject);
+    procedure chkCutToImageClick(Sender: TObject);
+    procedure rgCutClick(Sender: TObject);
+    procedure btnCutClick(Sender: TObject);
+    procedure chkCutSamePathClick(Sender: TObject);
+    procedure srchbxMergeVideoSavePathInvokeSearch(Sender: TObject);
   private
     FlngUI             : TLangUI;
     FDOSCommand        : TDosCommand;
@@ -173,6 +199,7 @@ type
     FSynEdit_VideoConv : TSynEdit;
     FSynEdit_VideoSplit: TSynEdit;
     FSynEdit_VideoMerge: TSynEdit;
+    FSynEdit_VideoCut  : TSynEdit;
     FJSONHL            : TSynJSONSyn;
     FFileStyle         : TFileStyle;
     FVideoStyle        : TVideoStyle;
@@ -209,10 +236,22 @@ type
     procedure SendPlayUIKey_vlc(H: HWND; Key: Char);
     { TDosCommand.Stop 无法停止 CMD 进程，需手动杀死进程 }
     procedure KillProcessOfProcessName(const strProcessName: string);
-    { 打开视频转换后的保存目录 }
+    { 打开视频转换后的保存路径 }
     procedure OpenVideoConvPath;
-    { 打开视频分离后的保存目录 }
+    { 打开视频分离后的保存路径 }
     procedure OpenVideoSplitPath;
+    { 打开视频合并后的保存路径 }
+    procedure OpenVideoMergePath;
+    { 打开视频截取后的保存路径 }
+    procedure OpenVideoCutPath;
+    { 视频转换结束 }
+    procedure FinishVideoConv;
+    { 视频分割结束 }
+    procedure FinishVideoSplit;
+    { 视频合并结束 }
+    procedure FinishVideoMerge;
+    { 视频截取结束 }
+    procedure FinishVideoCut;
   end;
 
 var
@@ -281,8 +320,14 @@ begin
       { 视频合并路径 }
       chkMergeSamePath.Checked := ReadBool('Merge', 'SamePath', True);
       if not chkMergeSamePath.Checked then
-        srchbxMergeSavePath.Text   := ReadString('Merge', 'SavePath', 'D:\');
-      chkMergeOpenSavePath.Checked := ReadBool('Merge', 'OpenSavePath', True);
+        srchbxMergeVideoSavePath.Text := ReadString('Merge', 'SavePath', 'D:\');
+      chkMergeOpenSavePath.Checked    := ReadBool('Merge', 'OpenSavePath', True);
+
+      { 视频截取路径 }
+      chkCutSamePath.Checked := ReadBool('Cut', 'SamePath', True);
+      if not chkCutSamePath.Checked then
+        srchbxCutVideoSavePath.Text := ReadString('Cut', 'SavePath', 'D:\');
+      chkCutOpenSavePath.Checked    := ReadBool('Cut', 'OpenSavePath', True);
 
       { 界面语言 }
       FlngUI                 := TLangUI(ReadInteger('UI', 'Language', 0) mod 2);
@@ -346,10 +391,18 @@ begin
     { 合并保存路径 }
     WriteBool('Merge', 'SamePath', chkMergeSamePath.Checked);
     if not chkMergeSamePath.Checked then
-      WriteString('Merge', 'SavePath', srchbxMergeSavePath.Text)
+      WriteString('Merge', 'SavePath', srchbxMergeVideoSavePath.Text)
     else
       DeleteKey('Merge', 'SavePath');
     WriteBool('Merge', 'OpenSavePath', chkMergeOpenSavePath.Checked);
+
+    { 截取保存路径 }
+    WriteBool('Cut', 'SamePath', chkCutSamePath.Checked);
+    if not chkCutSamePath.Checked then
+      WriteString('Cut', 'SavePath', srchbxCutVideoSavePath.Text)
+    else
+      DeleteKey('Cut', 'SavePath');
+    WriteBool('Cut', 'OpenSavePath', chkCutOpenSavePath.Checked);
 
     { 界面语言 }
     WriteInteger('UI', 'Language', rgLanguageUI.ItemIndex);
@@ -440,6 +493,16 @@ begin
   edtVideoHeight.Visible := not chkVideoSize.Checked;
 end;
 
+procedure TfrmFFUI.chkAddWaterMarkClick(Sender: TObject);
+begin
+  lblWatermark.Visible          := chkAddWaterMark.Checked;
+  srchbxWatermark.Visible       := chkAddWaterMark.Checked;
+  lblWatchMarkTop.Visible       := chkAddWaterMark.Checked;
+  lblWatchMarkLeft.Visible      := chkAddWaterMark.Checked;
+  edtWatchMarkTopValue.Visible  := chkAddWaterMark.Checked;
+  edtWatchMarkLeftValue.Visible := chkAddWaterMark.Checked;
+end;
+
 procedure TfrmFFUI.chkConvOpenSavePathClick(Sender: TObject);
 begin
   SaveConfig;
@@ -449,6 +512,8 @@ procedure TfrmFFUI.chkSplitSamePathClick(Sender: TObject);
 begin
   lblSplitSamePath.Visible         := not chkSplitSamePath.Checked;
   srchbxSplitVideoSavePath.Visible := not chkSplitSamePath.Checked;
+  if chkSplitSamePath.Checked then
+    SaveConfig;
 end;
 
 procedure TfrmFFUI.chkConvSavePathClick(Sender: TObject);
@@ -464,8 +529,10 @@ end;
 
 procedure TfrmFFUI.chkMergeSamePathClick(Sender: TObject);
 begin
-  lblMergeSamePath.Visible    := not chkMergeSamePath.Checked;
-  srchbxMergeSavePath.Visible := not chkMergeSamePath.Checked;
+  lblMergeSamePath.Visible         := not chkMergeSamePath.Checked;
+  srchbxMergeVideoSavePath.Visible := not chkMergeSamePath.Checked;
+  if chkMergeSamePath.Checked then
+    SaveConfig;
 end;
 
 procedure TfrmFFUI.lnklblHelpAccelGPULinkClick(Sender: TObject; const Link: string; LinkType: TSysLinkType);
@@ -537,6 +604,20 @@ begin
   FSynEdit_VideoMerge.Highlighter    := FJSONHL;
   FSynEdit_VideoMerge.ReadOnly       := True;
 
+  FSynEdit_VideoCut                := TSynEdit.Create(tsCut);
+  FSynEdit_VideoCut.Parent         := tsCut;
+  FSynEdit_VideoCut.Left           := 70;
+  FSynEdit_VideoCut.Top            := 324;
+  FSynEdit_VideoCut.Width          := 761;
+  FSynEdit_VideoCut.Height         := 233;
+  FSynEdit_VideoCut.Anchors        := [akLeft, akTop, akRight, akBottom];
+  FSynEdit_VideoCut.Gutter.Visible := False;
+  FSynEdit_VideoCut.Font.Name      := '宋体';
+  FSynEdit_VideoCut.Font.Size      := 12;
+  FSynEdit_VideoCut.RightEdge      := pnlVideoConv.Width;
+  FSynEdit_VideoCut.ScrollBars     := ssVertical;
+  FSynEdit_VideoCut.Highlighter    := FJSONHL;
+  FSynEdit_VideoCut.ReadOnly       := True;
 end;
 
 procedure TfrmFFUI.FormCreate(Sender: TObject);
@@ -566,6 +647,7 @@ begin
   { 销毁创建的第三方控件 }
   FDOSCommand.Free;
   FJSONHL.Free;
+  FSynEdit_VideoCut.Free;
   FSynEdit_VideoMerge.Free;
   FSynEdit_VideoSplit.Free;
   FSynEdit_VideoConv.Free;
@@ -601,39 +683,76 @@ begin
       FSynEdit_VideoSplit.Lines.Add(ANewLine)
     else
       FSynEdit_VideoSplit.Lines.Insert(0, ANewLine);
+  end
+  else if FStatStyle = ssMerge then
+  begin
+    FSynEdit_VideoMerge.Lines.Insert(0, ANewLine);
+  end
+  else if FStatStyle = ssCut then
+  begin
+    FSynEdit_VideoCut.Lines.Insert(0, ANewLine);
   end;
 end;
 
-{ 打开视频转换后的保存目录 }
+{ 打开视频转换后的保存路径 }
 procedure TfrmFFUI.OpenVideoConvPath;
 var
   strSavePath: String;
 begin
-  if chkConvSavePath.Checked then
-    strSavePath := ExtractFilePath(srchbxSelectVideoFile.Text)
-  else
-    strSavePath := srchbxVideoConvSavePath.Text;
+  if not chkConvOpenSavePath.Checked then
+    Exit;
 
-  if chkConvOpenSavePath.Checked then
-    ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
+  strSavePath := Ifthen(chkConvSavePath.Checked, ExtractFilePath(srchbxSelectVideoFile.Text), srchbxVideoConvSavePath.Text);
+  ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
 end;
 
-{ 打开视频分离后的保存目录 }
+{ 打开视频分离后的保存路径 }
 procedure TfrmFFUI.OpenVideoSplitPath;
 var
   strSavePath: String;
 begin
-  if chkSplitSamePath.Checked then
-    strSavePath := ExtractFilePath(srchbxSelectVideoFile.Text)
-  else
-    strSavePath := srchbxSplitVideoSavePath.Text;
+  if not chkSplitOpenSavePath.Checked then
+    Exit;
 
-  if chkSplitOpenSavePath.Checked then
-    ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
+  strSavePath := Ifthen(chkSplitSamePath.Checked, ExtractFilePath(srchbxSelectVideoFile.Text), srchbxSplitVideoSavePath.Text);
+  ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
+end;
+
+{ 打开视频合并后的保存路径 }
+procedure TfrmFFUI.OpenVideoMergePath;
+var
+  strSavePath: String;
+begin
+  if not chkMergeOpenSavePath.Checked then
+    Exit;
+
+  strSavePath := Ifthen(chkMergeSamePath.Checked, ExtractFilePath(lstMergeVideo.Items[0]), srchbxMergeVideoSavePath.Text);
+  ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
+end;
+
+{ 打开截取后的保存路径 }
+procedure TfrmFFUI.OpenVideoCutPath;
+var
+  strSavePath: String;
+begin
+  if not chkCutOpenSavePath.Checked then
+    Exit;
+
+  strSavePath := Ifthen(chkCutSamePath.Checked, ExtractFilePath(srchbxSelectVideoFile.Text), srchbxCutVideoSavePath.Text);
+  ShellExecute(0, 'open', 'explorer.exe', PChar(strSavePath), nil, SW_SHOWNORMAL);
 end;
 
 { 视频转换结束 }
-procedure TfrmFFUI.DosCommandTerminated(Sender: TObject);
+procedure TfrmFFUI.FinishVideoConv;
+begin
+  FStatStyle                := ssBlank;
+  btnVideoStartConv.Enabled := True;
+  btnVideoStopConv.Enabled  := False;
+  OpenVideoConvPath;
+end;
+
+{ 视频分割结束 }
+procedure TfrmFFUI.FinishVideoSplit;
 var
   strTempVideoCSVFileName   : String;
   strTempAudioCSVFileName   : String;
@@ -641,97 +760,126 @@ var
   I                         : Integer;
   strSplit                  : TArray<string>;
 begin
-  if FStatStyle = ssConv then
+  { 获取视频流信息 }
+  if FVideoStyle = vsVideo then
   begin
-    FStatStyle                := ssBlank;
-    btnVideoStartConv.Enabled := True;
-    btnVideoStopConv.Enabled  := False;
-    OpenVideoConvPath;
-  end
-  else if FStatStyle = ssSplit then
-  begin
-    { 获取视频流信息 }
-    if FVideoStyle = vsVideo then
-    begin
-      lstSplitVideo.Clear;
-      strTempVideoCSVFileName := TPath.GetTempPath + 'video.csv';
-      try
-        FSynEdit_VideoSplit.Lines.SaveToFile(strTempVideoCSVFileName);
-        with TStringList.Create do
+    lstSplitVideo.Clear;
+    strTempVideoCSVFileName := TPath.GetTempPath + 'video.csv';
+    try
+      FSynEdit_VideoSplit.Lines.SaveToFile(strTempVideoCSVFileName);
+      with TStringList.Create do
+      begin
+        LoadFromFile(strTempVideoCSVFileName);
+        for I := 0 to Count - 1 do
         begin
-          LoadFromFile(strTempVideoCSVFileName);
-          for I := 0 to Count - 1 do
-          begin
-            strSplit := Strings[I].Split([',']);
-            lstSplitVideo.Items.Add(strSplit[1] + '/' + strSplit[2]);
-          end;
-          Free;
+          strSplit := Strings[I].Split([',']);
+          lstSplitVideo.Items.Add(strSplit[1] + '/' + strSplit[2]);
         end;
-      finally
-        FSynEdit_VideoSplit.Lines.Clear;
-        DeleteFile(strTempVideoCSVFileName);
+        Free;
       end;
-    end;
-
-    { 获取音频流信息 }
-    if FVideoStyle = vsAudio then
-    begin
-      lstSplitAudio.Clear;
-      strTempAudioCSVFileName := TPath.GetTempPath + 'Audio.csv';
-      try
-        FSynEdit_VideoSplit.Lines.SaveToFile(strTempAudioCSVFileName);
-        with TStringList.Create do
-        begin
-          LoadFromFile(strTempAudioCSVFileName);
-          for I := 0 to Count - 1 do
-          begin
-            strSplit := Strings[I].Split([',']);
-            lstSplitAudio.Items.Add(strSplit[1] + '/' + strSplit[2]);
-          end;
-          Free;
-        end;
-      finally
-        FSynEdit_VideoSplit.Lines.Clear;
-        DeleteFile(strTempAudioCSVFileName);
-      end;
-    end;
-
-    { 获取字幕流信息 }
-    if FVideoStyle = vsSubtitle then
-    begin
-      lstSplitSubtitle.Clear;
-      strTempSubtitleCSVFileName := TPath.GetTempPath + 'Subtitle.csv';
-      try
-        FSynEdit_VideoSplit.Lines.SaveToFile(strTempSubtitleCSVFileName);
-        with TStringList.Create do
-        begin
-          LoadFromFile(strTempSubtitleCSVFileName);
-          for I := 0 to Count - 1 do
-          begin
-            strSplit := Strings[I].Split([',']);
-            lstSplitSubtitle.Items.Add(strSplit[1] + '/' + strSplit[2]);
-          end;
-          Free;
-        end;
-      finally
-        FSynEdit_VideoSplit.Lines.Clear;
-        DeleteFile(strTempSubtitleCSVFileName);
-      end;
-      FStatStyle := ssBlank;
-    end;
-
-    { 视频分离结束 }
-    if FVideoStyle = vsConv then
-    begin
-      btnVideoSplit.Enabled := True;
-
-      { 删除临时的 CMD 文件 }
-      DeleteFile(TPath.GetTempPath + 'split.cmd');
-
-      { 打开分离后的路径 }
-      OpenVideoSplitPath;
+    finally
+      FSynEdit_VideoSplit.Lines.Clear;
+      DeleteFile(strTempVideoCSVFileName);
     end;
   end;
+
+  { 获取音频流信息 }
+  if FVideoStyle = vsAudio then
+  begin
+    lstSplitAudio.Clear;
+    strTempAudioCSVFileName := TPath.GetTempPath + 'Audio.csv';
+    try
+      FSynEdit_VideoSplit.Lines.SaveToFile(strTempAudioCSVFileName);
+      with TStringList.Create do
+      begin
+        LoadFromFile(strTempAudioCSVFileName);
+        for I := 0 to Count - 1 do
+        begin
+          strSplit := Strings[I].Split([',']);
+          lstSplitAudio.Items.Add(strSplit[1] + '/' + strSplit[2]);
+        end;
+        Free;
+      end;
+    finally
+      FSynEdit_VideoSplit.Lines.Clear;
+      DeleteFile(strTempAudioCSVFileName);
+    end;
+  end;
+
+  { 获取字幕流信息 }
+  if FVideoStyle = vsSubtitle then
+  begin
+    lstSplitSubtitle.Clear;
+    strTempSubtitleCSVFileName := TPath.GetTempPath + 'Subtitle.csv';
+    try
+      FSynEdit_VideoSplit.Lines.SaveToFile(strTempSubtitleCSVFileName);
+      with TStringList.Create do
+      begin
+        LoadFromFile(strTempSubtitleCSVFileName);
+        for I := 0 to Count - 1 do
+        begin
+          strSplit := Strings[I].Split([',']);
+          lstSplitSubtitle.Items.Add(strSplit[1] + '/' + strSplit[2]);
+        end;
+        Free;
+      end;
+    finally
+      FSynEdit_VideoSplit.Lines.Clear;
+      DeleteFile(strTempSubtitleCSVFileName);
+    end;
+    FStatStyle := ssBlank;
+  end;
+
+  { 视频分离结束 }
+  if FVideoStyle = vsConv then
+  begin
+    btnVideoSplit.Enabled := True;
+
+    { 删除临时的 CMD 文件 }
+    DeleteFile(TPath.GetTempPath + 'split.cmd');
+
+    { 打开分离后的保存路径 }
+    OpenVideoSplitPath;
+  end;
+end;
+
+{ 视频合并结束 }
+procedure TfrmFFUI.FinishVideoMerge;
+begin
+  btnMerge.Enabled := True;
+
+  { 删除临时文件 }
+  DeleteFile(TPath.GetTempPath + 'merge.cmd');
+  DeleteFile(TPath.GetTempPath + 'merge.mkv');
+
+  { 打开合并后的保存路径 }
+  OpenVideoMergePath;
+end;
+
+{ 视频截取结束 }
+procedure TfrmFFUI.FinishVideoCut;
+begin
+  btnCut.Enabled := True;
+
+  { 打开截取后的保存路径 }
+  OpenVideoCutPath;
+end;
+
+{ 视频操作结束 }
+procedure TfrmFFUI.DosCommandTerminated(Sender: TObject);
+begin
+  if FStatStyle = ssConv then
+    { 视频转换结束 }
+    FinishVideoConv
+  else if FStatStyle = ssSplit then
+    { 视频分离结束 }
+    FinishVideoSplit
+  else if FStatStyle = ssMerge then
+    { 视频合并结束 }
+    FinishVideoMerge
+  else if FStatStyle = ssCut then
+    { 视频截取结束 }
+    FinishVideoCut
 end;
 
 { Dos 命令行参数复制到剪切板 }
@@ -892,6 +1040,17 @@ begin
   btnVideoPlayPlay.Click;
 end;
 
+procedure TfrmFFUI.srchbxMergeVideoSavePathInvokeSearch(Sender: TObject);
+var
+  strFolder: String;
+begin
+  if not SelectDirectory(TransUI('选择一个目录，目录下包含视频文件'), TransUI('目录名称：'), strFolder) then
+    Exit;
+
+  srchbxMergeVideoSavePath.Text := strFolder;
+  SaveConfig;
+end;
+
 procedure TfrmFFUI.srchbxSelectVideoFileInvokeSearch(Sender: TObject);
 var
   pt: TPoint;
@@ -904,10 +1063,11 @@ procedure TfrmFFUI.srchbxSplitVideoSavePathInvokeSearch(Sender: TObject);
 var
   strSelectedFolder: String;
 begin
-  if not SelectDirectory(TransUI('选择保存视频转换结果目录：'), TransUI('选择目录：'), strSelectedFolder) then
+  if not SelectDirectory(TransUI('选择保存视频截取结果目录：'), TransUI('选择目录：'), strSelectedFolder) then
     Exit;
 
   srchbxSplitVideoSavePath.Text := strSelectedFolder;
+  SaveConfig;
 end;
 
 procedure TfrmFFUI.srchbxVideoConvSavePathInvokeSearch(Sender: TObject);
@@ -1339,76 +1499,217 @@ end;
 
 procedure TfrmFFUI.srchbxWatermarkInvokeSearch(Sender: TObject);
 begin
-  //
+  with TOpenPictureDialog.Create(nil) do
+  begin
+    Filter := Ifthen(FlngUI = lngChinese, '图片文件(*.BMP;*.JPG;*.PNG)|*.BMP;*.JPG;*.PNG', 'Image file(*.BMP;*.JPG;*.PNG)|*.BMP;*.JPG;*.PNG');
+    if Execute() then
+    begin
+      srchbxWatermark.Text := FileName;
+    end;
+    Free;
+  end;
 end;
 
 procedure TfrmFFUI.btnMergeClick(Sender: TObject);
+var
+  I                    : Integer;
+  strVideoStreamFile   : String;
+  strVideoStreamCopy   : String;
+  strAudioStreamFile   : String;
+  strAudioStreamCopy   : String;
+  strSubtitleStreamFile: String;
+  strSubtitleStreamCopy: String;
+  strFFMPEGPath        : String;
+  strOutFileName       : String;
+  strWaterMark         : String;
+  strMergeCMDFileName  : String;
+  strTempVideoFileName : string;
 begin
-  // 视频添加水印
-  // ffmpeg -i input.mp4 -i logo.jpg -filter_complex [0:v][1:v]overlay=main_w-overlay_w-10:main_h-overlay_h-10[out] -map [out] -map 0:a -codec:a copy output.mp4
-  // main_w-overlay_w-10 视频的宽度-水印的宽度-水印边距；
+  if (lstMergeVideo.Count = 0) and (lstMergeAudio.Count = 0) then
+  begin
+    MessageBox(Handle, PChar(TransUI('必须先打开一个视频文件或多个音频，再进行合并')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    lstMergeVideo.SetFocus;
+    Exit;
+  end;
 
-  // 音视频合成
-  // ffmpeg -y –i input.mp4 –i input.mp3 –vcodec copy –acodec copy output.mp4
-  // -y 覆盖输出文件
+  { 视频输入 }
+  for I := 0 to lstMergeVideo.Count - 1 do
+  begin
+    strVideoStreamFile := strVideoStreamFile + ' -i "' + lstMergeVideo.Items[I] + '"';
+    strVideoStreamCopy := strVideoStreamCopy + ' -vcodec copy ';
+  end;
 
-  // 截取视频局部                                                ffmpeg -i in.mp4 -filter:v "crop=out_w:out_h:x:y" out.mp4
-  // 截取部分视频，从[80,60]的位置开始，截取宽200，高100的视频   ffmpeg -i in.mp4 -filter:v "crop=80:60:200:100" -c:a copy out.mp4
-  // 截取右下角的四分之一                                        ffmpeg -i in.mp4 -filter:v "crop=in_w/2:in_h/2:in_w/2:in_h/2" -c:a copy out.mp4
-  // 截去底部40像素高度                                          ffmpeg -i in.mp4 -filter:v "crop=in_w:in_h-40" -c:a copy out.mp4
+  { 音频输入 }
+  for I := 0 to lstMergeAudio.Count - 1 do
+  begin
+    strAudioStreamFile := strAudioStreamFile + ' -i "' + lstMergeAudio.Items[I] + '"';
+    strAudioStreamCopy := strAudioStreamCopy + ' -acodec copy ';
+  end;
 
-  // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental                       output.mp4
-  // ffmpeg -i video.mp4 -i audio.wav -c:v copy -c:a aac -strict experimental -map 0:v:0 -map 1:a:0 output.mp4    <替换视频中的音频>
+  { 字幕输入 }
+  for I := 0 to lstMergeSubtitle.Count - 1 do
+  begin
+    strSubtitleStreamFile := strSubtitleStreamFile + ' -i "' + lstMergeAudio.Items[I] + '"';
+    strSubtitleStreamCopy := strSubtitleStreamCopy + ' -scodec copy ';
+  end;
 
+  { 有无水印 }
+  if chkAddWaterMark.Checked then
+  begin
+    if (Trim(srchbxWatermark.Text) <> '') and (Trim(edtWatchMarkLeftValue.Text) <> '') and (Trim(edtWatchMarkTopValue.Text) <> '') then
+    begin
+      strWaterMark := ' -i "' + srchbxWatermark.Text + '" -filter_complex “overlay=' + edtWatchMarkLeftValue.Text + ':' + edtWatchMarkTopValue.Text + '” '
+    end
+    else
+    begin
+      MessageBox(Handle, PChar(TransUI('水印文件名不能为空，并且坐标不能为空')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+      Exit;
+    end;
+  end;
+
+  strMergeCMDFileName  := TPath.GetTempPath + 'merge.cmd';
+  strTempVideoFileName := TPath.GetTempPath + 'merge.mkv';
+  strOutFileName       := Ifthen(chkMergeSamePath.Checked, ExtractFilePath(lstMergeVideo.Items[0]), srchbxMergeVideoSavePath.Text) + ChangeFileExt(ExtractFileName(lstMergeVideo.Items[0]), '') + '.mkv';
+  strFFMPEGPath        := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  with TStringList.Create do
+  begin
+    if strWaterMark <> '' then
+    begin
+      { 有水印 }
+      Add(Format('"%s\ffmpeg" -y %s %s %s %s %s %s %s', [strFFMPEGPath, strVideoStreamFile, strAudioStreamFile, strSubtitleStreamFile, strVideoStreamCopy, strAudioStreamCopy, strSubtitleStreamCopy, strTempVideoFileName]));
+      Add(Format('"%s\ffmpeg" -y -i "%s" -i "%s" -filter_complex "overlay=%s:%s" "%s"', [strFFMPEGPath, strTempVideoFileName, srchbxWatermark.Text, edtWatchMarkLeftValue.Text, edtWatchMarkTopValue.Text, strOutFileName]));
+    end
+    else
+    begin
+      { 无水印 }
+      Add(Format('"%s\ffmpeg" -y %s %s %s %s %s %s %s', [strFFMPEGPath, strVideoStreamFile, strAudioStreamFile, strSubtitleStreamFile, strVideoStreamCopy, strAudioStreamCopy, strSubtitleStreamCopy, strOutFileName]));
+    end;
+    SaveToFile(strMergeCMDFileName);
+    Free;
+  end;
+
+  FDOSCommand.CommandLine := strMergeCMDFileName;
+  FDOSCommand.Execute;
+  FStatStyle := ssMerge;
+  FSynEdit_VideoMerge.Clear;
+  btnMerge.Enabled := False;
 end;
 
 procedure TfrmFFUI.btnConnectMulVideoClick(Sender: TObject);
+var
+  I                  : Integer;
+  strFFMPEGPath      : String;
+  strMergeCMDFileName: String;
+  strMulVideo        : String;
+  strOutFileName     : String;
 begin
-  // ffmpeg -f concat -safe 0 -i filelist.txt -c copy output.mp4
+  if (lstMergeVideo.Count <= 1) then
+  begin
+    MessageBox(Handle, PChar(TransUI('必须先添加多个视频文件，再进行连接')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    lstMergeVideo.SetFocus;
+    Exit;
+  end;
 
-  // ffmpeg -i 1.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 1.ts
-  // ffmpeg -i 2.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 2.ts
-  // ffmpeg -i "concat:1.ts|2.ts" -acodec copy -vcodec copy -absf aac_adtstoasc output.mp4
+  strFFMPEGPath       := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  strOutFileName      := Ifthen(chkMergeSamePath.Checked, ExtractFilePath(lstMergeVideo.Items[0]), srchbxMergeVideoSavePath.Text) + ChangeFileExt(ExtractFileName(lstMergeVideo.Items[0]), '') + '.mkv';
+  strMergeCMDFileName := TPath.GetTempPath + 'merge.cmd';
+  with TStringList.Create do
+  begin
+    for I := 0 to lstMergeVideo.Count - 1 do
+    begin
+      Add(Format('"%s\ffmpeg" -y -i "%s" -c copy -bsf:v h264_mp4toannexb -f mpegts "%s\%02d.ts"', [strMergeCMDFileName, lstMergeVideo.Items[I], strFFMPEGPath, I + 100]));
+      strMulVideo := strMulVideo + '|' + Format('%02d.ts', [I + 100]);
+    end;
+    strMulVideo := RightStr(strMulVideo, Length(strMulVideo) - 1);
+    Add(Format('"%s\ffmpeg" -y -i "concat:%s" -acodec copy -vcodec copy -absf aac_adtstoasc %s', [strFFMPEGPath, strMulVideo, strOutFileName]));
 
+    SaveToFile(strMergeCMDFileName);
+    Free;
+  end;
 
-  // ffmpeg -i input1.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input1.ts
-  // ffmpeg -i input2.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input2.ts
-  // ffmpeg -i input3.flv -c copy -bsf:v h264_mp4toannexb -f mpegts input3.ts
-  // ffmpeg -i "concat:input1.ts|input2.ts|input3.ts" -c copy -bsf:a aac_adtstoasc -movflags +faststart output.mp4
-
-  // ffmpeg -i input1.mp4 -i input2.webm -i input3.avi -filter_complex '[0:0] [0:1] [1:0] [1:1] [2:0] [2:1] concat=n=3:v=1:a=1 [v] [a]' -map '[v]' -map '[a]' <编码器选项> output.mkv
+  FDOSCommand.CommandLine := strMergeCMDFileName;
+  FDOSCommand.Execute;
+  FStatStyle := ssMerge;
+  FSynEdit_VideoMerge.Clear;
+  btnMerge.Enabled := False;
 end;
 
-(*
-  增加字幕流
-  ffmpeg -i video.avi -i sub.ass -map 0:0 -map 0:1 -map 1 -c:a copy -c:v copy -c:s copy video.mkv
+{ ------------------------------------------------------------------------- 视频截取 ------------------------------------------------------------------------------- }
 
-  提取字幕流
-  1）原始文本输出
-  ffmpeg -i output.mkv -an -vn -bsf:s mov2textsub -scodec copy -f rawvideo sub.txt
-  ffmpeg -i output.mkv -an -vn -c:s copy -f rawvideo -map 0:s sub2.txt
-  2）ass格式输出
-  ffmpeg -i output.mkv -an -vn -scodec copy sub3.ass
+procedure TfrmFFUI.rgCutClick(Sender: TObject);
+begin
+  chkCutToImage.Visible := rgCut.ItemIndex = 1;
+  grpCutToImage.Visible := Boolean(Ifthen(rgCut.ItemIndex = 1, Integer(chkCutToImage.Checked), 0));
+end;
 
+procedure TfrmFFUI.chkCutToImageClick(Sender: TObject);
+begin
+  grpCutToImage.Visible := chkCutToImage.Checked;
+end;
 
-  所谓加硬字幕是把字幕加到视频流中，不是单独的字幕流，命令如下：
-  ffmpeg -i demo.mp4 -vf ass=subtitle.ass output.mp4
-  或
-  ffmpeg -i demo.mp4 -vf subtitles=sample.srt out.mp4
+procedure TfrmFFUI.chkCutSamePathClick(Sender: TObject);
+begin
+  lblCutVideoSavePath.Visible    := not chkCutSamePath.Checked;
+  srchbxCutVideoSavePath.Visible := not chkCutSamePath.Checked;
+end;
 
+procedure TfrmFFUI.btnCutClick(Sender: TObject);
+const
+  arrSaveImageType: array [0 .. 2] of string = ('bmp', 'jpg', 'png');
+var
+  strStartTime, strEndTime: String;
+  strCut                  : String;
+  strFFMPEGPath           : String;
+  strOutPathName          : String;
+  strOutFileName          : String;
+begin
+  if (Trim(srchbxSelectVideoFile.Text) = '') then
+  begin
+    MessageBox(Handle, PChar(TransUI('必须先打开一个视频文件')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    srchbxSelectVideoFile.SetFocus;
+    Exit;
+  end;
 
-  添加水印
-  在固定的位置添加水印
-  ffmpeg -i test.mp4 -i test.png -filter_complex “overlay=10:10” watermark.mp4
-  在test.mp4左上角10,10的位置添加水印图片test.png，同时在根目录产出一个watermark.mp4的视频
+  if (Trim(edtCutStartTime.Text) = '') or (Trim(edtCutEndTime.Text) = '') then
+  begin
+    MessageBox(Handle, PChar(TransUI('起始/结束时间不能为空')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    edtCutStartTime.SetFocus;
+    Exit;
+  end;
 
-  自适应添加水印
-  ffmpeg -i test.mp4 -i test.png -filter_complex “overlay=x=main_h-10:main_w-10” watermark.mp4
-  在test.mp4距离右下角10，10的位置添加水印，main_h代表视频的高度，main_w代表视频的宽度
+  strStartTime   := edtCutStartTime.Text;
+  strEndTime     := edtCutEndTime.Text;
+  strFFMPEGPath  := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  strOutPathName := Ifthen(chkCutSamePath.Checked, ExtractFilePath(srchbxSelectVideoFile.Text), srchbxCutVideoSavePath.Text);
+  if RightStr(strOutPathName, 1) <> '\' then
+    strOutPathName := strOutPathName + '\';
 
-  同时为视频添加水印和字幕
-  ffmpeg -i test.mp4 -i test.png -filter_complex “overlay=x=main_w-273:y=main_h-113,subtitles=test.srt:force_style=‘Fontsize=11’” output.mp4
-  给test.mp4添加字幕和水印，同时字幕字体的大小为11px，如果还需要设置字幕的位置，字体，阴影等可以直接在Fontsize=11后面直接拼接即可。Shadow=0,MarginV=20代表阴影为1，距离下边距为20px
+  if rgCut.ItemIndex = 0 then
+  begin
+    strCut := Format('"%s\ffmpeg" -y -ss %s -i "%s" -to %s -c:v copy -c:a copy "%s"', [strFFMPEGPath, strStartTime, srchbxSelectVideoFile.Text, strEndTime, strOutPathName + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + '.cut.' + ExtractFileExt(srchbxSelectVideoFile.Text)]);
+  end
+  else if rgCut.ItemIndex = 1 then
+  begin
+    if not chkCutToImage.Checked then
+    begin
+      strCut := Format('"%s\ffmpeg" -y -ss %s -i "%s" -to %s -c:v copy -an "%s"', [strFFMPEGPath, strStartTime, srchbxSelectVideoFile.Text, strEndTime, strOutPathName + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + '.cut.' + ExtractFileExt(srchbxSelectVideoFile.Text)]);
+    end
+    else
+    begin
+      strCut := Format('"%s\ffmpeg" -y -ss %s -i "%s" -to %s "%s\%s.%s"', [strFFMPEGPath, strStartTime, srchbxSelectVideoFile.Text, strEndTime, strOutPathName, '%05d', arrSaveImageType[cbbCutImage.ItemIndex]]);
+    end;
+  end
+  else if rgCut.ItemIndex = 2 then
+  begin
+    strOutFileName := strOutPathName + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + '.cut.' + lstSplitAudio.Items[0].Split(['/'])[1];
+    strCut         := Format('"%s\ffmpeg" -y -ss %s -i "%s" -to %s -c:a copy -vn "%s"', [strFFMPEGPath, strStartTime, srchbxSelectVideoFile.Text, strEndTime, strOutFileName]);
+  end;
 
-*)
+  FDOSCommand.CommandLine := strCut;
+  FDOSCommand.Execute;
+  FStatStyle := ssCut;
+  FSynEdit_VideoCut.Clear;
+  btnCut.Enabled := False;
+end;
+
 end.

@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsMerge
+    ActivePage = tsInfo
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -306,7 +306,6 @@ object frmFFUI: TfrmFFUI
     object tsMerge: TTabSheet
       Caption = #21512#24182
       ImageIndex = 4
-      ExplicitLeft = 0
       DesignSize = (
         984
         584)
@@ -364,10 +363,27 @@ object frmFFUI: TfrmFFUI
       end
       object lblWatermark: TLabel
         Left = 837
-        Top = 250
+        Top = 190
         Width = 60
         Height = 13
         Caption = #22270#29255#36335#24452#65306
+        Visible = False
+      end
+      object lblWatchMarkLeft: TLabel
+        Left = 840
+        Top = 239
+        Width = 74
+        Height = 13
+        Caption = #27700#24179'(X)'#22352#26631#65306
+        Visible = False
+      end
+      object lblWatchMarkTop: TLabel
+        Left = 841
+        Top = 264
+        Width = 74
+        Height = 13
+        Caption = #22402#30452'(Y)'#22352#26631#65306
+        Visible = False
       end
       object lstMergeVideo: TListBox
         Left = 70
@@ -477,21 +493,20 @@ object frmFFUI: TfrmFFUI
       end
       object chkAddWaterMark: TCheckBox
         Left = 837
-        Top = 226
+        Top = 166
         Width = 99
         Height = 17
         Caption = #28155#21152#27700#21360
-        Checked = True
-        State = cbChecked
         TabOrder = 10
-        OnClick = chkMergeSamePathClick
+        OnClick = chkAddWaterMarkClick
       end
       object srchbxWatermark: TSearchBox
         Left = 837
-        Top = 270
+        Top = 210
         Width = 132
         Height = 21
         TabOrder = 11
+        Visible = False
         OnInvokeSearch = srchbxWatermarkInvokeSearch
       end
       object btnConnectMulVideo: TButton
@@ -507,10 +522,137 @@ object frmFFUI: TfrmFFUI
         TabOrder = 12
         OnClick = btnConnectMulVideoClick
       end
+      object edtWatchMarkTopValue: TEdit
+        Left = 922
+        Top = 261
+        Width = 47
+        Height = 21
+        NumbersOnly = True
+        TabOrder = 13
+        Text = '10'
+        Visible = False
+      end
+      object edtWatchMarkLeftValue: TEdit
+        Left = 922
+        Top = 234
+        Width = 47
+        Height = 21
+        NumbersOnly = True
+        TabOrder = 14
+        Text = '10'
+        Visible = False
+      end
     end
     object tsCut: TTabSheet
       Caption = #25130#21462
       ImageIndex = 5
+      DesignSize = (
+        984
+        584)
+      object rgCut: TRadioGroup
+        Left = 16
+        Top = 8
+        Width = 957
+        Height = 61
+        Anchors = [akLeft, akTop, akRight]
+        Caption = #25130#21462#31867#22411#65306
+        Columns = 3
+        ItemIndex = 0
+        Items.Strings = (
+          #21253#21547#38899#35270#39057
+          #21482#26377#35270#39057
+          #21482#26377#38899#39057)
+        TabOrder = 0
+        OnClick = rgCutClick
+      end
+      object grpCutToImage: TGroupBox
+        Left = 435
+        Top = 80
+        Width = 122
+        Height = 77
+        Caption = #22270#29255#65306
+        TabOrder = 1
+        Visible = False
+        object lblCutImageFormat: TLabel
+          Left = 32
+          Top = 20
+          Width = 60
+          Height = 13
+          Caption = #22270#29255#26684#24335#65306
+        end
+        object cbbCutImage: TComboBox
+          Left = 32
+          Top = 39
+          Width = 60
+          Height = 21
+          Style = csDropDownList
+          ItemIndex = 1
+          TabOrder = 0
+          Text = 'JPG'
+          Items.Strings = (
+            'BMP'
+            'JPG'
+            'PNG')
+        end
+      end
+      object grpCutTime: TGroupBox
+        Left = 16
+        Top = 80
+        Width = 264
+        Height = 77
+        Caption = #25130#21462#26102#38388#65306
+        TabOrder = 2
+        object lblCutStartTime: TLabel
+          Left = 32
+          Top = 23
+          Width = 60
+          Height = 13
+          Caption = #24320#22987#26102#38388#65306
+        end
+        object lblCutEndTime: TLabel
+          Left = 32
+          Top = 47
+          Width = 60
+          Height = 13
+          Caption = #32467#26463#26102#38388#65306
+        end
+        object edtCutStartTime: TEdit
+          Left = 108
+          Top = 19
+          Width = 121
+          Height = 21
+          TabOrder = 0
+          Text = '00:00:00'
+        end
+        object edtCutEndTime: TEdit
+          Left = 108
+          Top = 44
+          Width = 121
+          Height = 21
+          TabOrder = 1
+          Text = '00:01:00'
+        end
+      end
+      object chkCutToImage: TCheckBox
+        Left = 340
+        Top = 80
+        Width = 89
+        Height = 17
+        Caption = #25130#21462#20026#22270#29255
+        TabOrder = 3
+        Visible = False
+        OnClick = chkCutToImageClick
+      end
+      object btnCut: TButton
+        Left = 852
+        Top = 324
+        Width = 95
+        Height = 44
+        Anchors = [akTop, akRight]
+        Caption = #25130#21462
+        TabOrder = 4
+        OnClick = btnCutClick
+      end
     end
     object tsLive: TTabSheet
       Caption = #30452#25773
@@ -721,7 +863,7 @@ object frmFFUI: TfrmFFUI
         end
         object chkConvSavePath: TCheckBox
           Left = 332
-          Top = 26
+          Top = 23
           Width = 469
           Height = 17
           Caption = #20445#23384#36335#24452#21516#25991#20214
@@ -939,9 +1081,9 @@ object frmFFUI: TfrmFFUI
         object lblMergeFormat: TLabel
           Left = 412
           Top = 22
-          Width = 65
+          Width = 91
           Height = 13
-          Caption = #21512#24182#26684#24335#65306
+          Caption = #21512#24182#21518#30340#26684#24335#65306
         end
         object chkMergeSamePath: TCheckBox
           Left = 28
@@ -954,13 +1096,14 @@ object frmFFUI: TfrmFFUI
           TabOrder = 0
           OnClick = chkMergeSamePathClick
         end
-        object srchbxMergeSavePath: TSearchBox
+        object srchbxMergeVideoSavePath: TSearchBox
           Left = 252
           Top = 23
           Width = 136
           Height = 21
           TabOrder = 1
           Visible = False
+          OnInvokeSearch = srchbxMergeVideoSavePathInvokeSearch
         end
         object chkMergeOpenSavePath: TCheckBox
           Left = 28
@@ -979,6 +1122,7 @@ object frmFFUI: TfrmFFUI
           Width = 106
           Height = 21
           Style = csDropDownList
+          Enabled = False
           ItemIndex = 0
           TabOrder = 3
           Text = 'H264 (*.MKV)'
@@ -986,6 +1130,60 @@ object frmFFUI: TfrmFFUI
           Items.Strings = (
             'H264 (*.MKV)'
             'H265 (*.MKV)')
+        end
+      end
+      object grpCutConfig: TGroupBox
+        Left = 12
+        Top = 442
+        Width = 409
+        Height = 72
+        Anchors = [akLeft, akTop, akRight]
+        Caption = #25130#21462#20445#23384#36335#24452#65306
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+        TabOrder = 7
+        object lblCutVideoSavePath: TLabel
+          Left = 208
+          Top = 26
+          Width = 39
+          Height = 13
+          Caption = #36335#24452#65306
+          Visible = False
+        end
+        object chkCutSamePath: TCheckBox
+          Left = 28
+          Top = 22
+          Width = 174
+          Height = 17
+          Caption = #20445#23384#36335#24452#21516#25991#20214
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+          OnClick = chkCutSamePathClick
+        end
+        object srchbxCutVideoSavePath: TSearchBox
+          Left = 252
+          Top = 22
+          Width = 147
+          Height = 21
+          TabOrder = 1
+          Visible = False
+          OnInvokeSearch = srchbxSplitVideoSavePathInvokeSearch
+        end
+        object chkCutOpenSavePath: TCheckBox
+          Left = 28
+          Top = 46
+          Width = 358
+          Height = 17
+          Caption = #25130#21462#32467#26463#25171#24320#20445#23384#30446#24405
+          Checked = True
+          State = cbChecked
+          TabOrder = 2
+          OnClick = chkConvOpenSavePathClick
         end
       end
     end
