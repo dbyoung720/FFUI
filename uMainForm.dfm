@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsMerge
+    ActivePage = tsConfig
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -1023,7 +1023,6 @@ object frmFFUI: TfrmFFUI
         Top = 354
         Width = 409
         Height = 72
-        Anchors = [akLeft, akTop, akRight]
         Caption = #20998#31163#20445#23384#36335#24452#65306
         Font.Charset = GB2312_CHARSET
         Font.Color = clWindowText
@@ -1089,10 +1088,9 @@ object frmFFUI: TfrmFFUI
       end
       object rgLanguageUI: TRadioGroup
         Left = 12
-        Top = 531
-        Width = 961
+        Top = 506
+        Width = 409
         Height = 45
-        Anchors = [akLeft, akTop, akRight]
         Caption = #30028#38754#35821#35328#65306
         Columns = 3
         Font.Charset = GB2312_CHARSET
@@ -1186,10 +1184,9 @@ object frmFFUI: TfrmFFUI
       end
       object grpCutConfig: TGroupBox
         Left = 12
-        Top = 442
+        Top = 429
         Width = 409
         Height = 72
-        Anchors = [akLeft, akTop, akRight]
         Caption = #25130#21462#20445#23384#36335#24452#65306
         Font.Charset = GB2312_CHARSET
         Font.Color = clWindowText
