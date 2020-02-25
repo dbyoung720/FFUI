@@ -11,10 +11,10 @@
 
 
 ## II. Features 
-    1¡¢View Video Info£»
-    2¡¢Video Play£»Support FFMPEG(4.2.2)¡¢MPV(2.0.0)¡¢VLC(3.0.8)£»
-    3¡¢Video Format Convert£»Support GPU Accelerate£»
-    4¡¢Video Separate£»
-    5¡¢Video Merge£»
-    6¡¢Video Cut£»
-    7¡¢Video Live£»
+    1¡¢View Video Info£»      Support£ºFile¡¢Folder¡¢Web Stream£»
+    2¡¢Video Play£»           Support£ºFFMPEG(4.2.2)¡¢MPV(2.0.0)¡¢VLC(3.0.8)£»
+    3¡¢Video Format Convert£» Support£ºGPU Accelerate£»Watermark£»
+    4¡¢Video Separate£»       Support£ºSeparate Video¡¢Audio¡¢Subtitle£»
+    5¡¢Video Merge£»          Support£ºMerte Video¡¢Audio¡¢Subtitle£»Watermark£» 
+    6¡¢Video Cut£»            Support£ºVideo¡¢Audio¡¢Image£»
+    7¡¢Video Live£»           Support£ºFile¡¢USB Camera¡¢IP Camera¡¢Desktop£»
