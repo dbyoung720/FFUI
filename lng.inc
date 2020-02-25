@@ -74,6 +74,7 @@ begin
   btnVideoPlayPlay.Caption  := '播放';
   btnVideoPlayPause.Caption := '暂停';
   btnVideoPlayStop.Caption  := '停止';
+  btnPlayUSBCamera.Caption  := '播放 USB 摄像头';
 
   btnAddVideoFile.Caption   := '添加文件';
   btnAddFolder.Caption      := '添加文件夹';
@@ -186,6 +187,7 @@ begin
   btnVideoPlayPlay.Caption  := 'Play';
   btnVideoPlayPause.Caption := 'Pause';
   btnVideoPlayStop.Caption  := 'Stop';
+  btnPlayUSBCamera.Caption  := 'Play USB Camera';
 
   btnAddVideoFile.Caption   := 'Add File';
   btnAddFolder.Caption      := 'Add Folder';

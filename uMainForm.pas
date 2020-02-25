@@ -3,7 +3,7 @@ unit uMainForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList, System.DateUtils,
+  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.Win.Registry, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList, System.DateUtils,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl, Vcl.ImgList,
   {第三方控件}
   SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI, Vcl.ExtDlgs;
@@ -198,6 +198,7 @@ type
     procedure chkCutSamePathClick(Sender: TObject);
     procedure srchbxMergeVideoSavePathInvokeSearch(Sender: TObject);
     procedure btnLiveClick(Sender: TObject);
+    procedure btnPlayUSBCameraClick(Sender: TObject);
   private
     FlngUI             : TLangUI;
     FDOSCommand        : TDosCommand;
@@ -275,7 +276,18 @@ const
   c_strVideoFormat    = '*.AVI;*.FLV;*.M2V;*.MKV;*.MOV;*.MPG;*.MP4;*.H264;*.H265;*.RMVB;*.TS;*.VOB;*.WMV;*.YUV';
   c_strSubtitleFormat = '*.txt;*.ass;*.srt';
 
-  { 更改界面语言 }
+procedure DosSupportUTF8;
+begin
+  with TRegistry.Create do
+  begin
+    RootKey := HKEY_LOCAL_MACHINE;
+    OpenKey('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor', True);
+    WriteString('autorun', 'chcp 65001');
+    Free;
+  end;
+end;
+
+{ 更改界面语言 }
 procedure TfrmFFUI.ChangeLanguageUI;
 begin
   case FlngUI of
@@ -1055,6 +1067,7 @@ procedure TfrmFFUI.mniOpenWebStreamClick(Sender: TObject);
 var
   strWebStreamAddr: String;
 begin
+  strWebStreamAddr := 'http://ivi.bupt.edu.cn/hls/cctv3hd.m3u8';
   if not InputQuery(TransUI('网络视频地址：'), TransUI('地址：'), strWebStreamAddr) then
     Exit;
 
@@ -1105,6 +1118,20 @@ begin
 end;
 
 { ------------------------------------------------------------------------- 视频播放 ------------------------------------------------------------------------------- }
+
+procedure TfrmFFUI.btnPlayUSBCameraClick(Sender: TObject);
+var
+  strPlayProgramPath: String;
+begin
+  strPlayProgramPath      := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  FDOSCommand.CommandLine := Format('"%s\ffplay.exe" -hide_banner -window_title ffplay -f dshow -i 0', [strPlayProgramPath]);
+  FDOSCommand.Execute;
+  statInfo.SimpleText       := FDOSCommand.CommandLine;
+  tmrPlayVideo.Enabled      := True;
+  btnVideoPlayPlay.Enabled  := False;
+  btnVideoPlayPause.Enabled := True;
+  btnVideoPlayStop.Enabled  := True;
+end;
 
 procedure TfrmFFUI.tmrPlayVideoTimer(Sender: TObject);
 begin
@@ -1418,6 +1445,13 @@ var
   intIndex          : Integer;
   strSavePath       : String;
 begin
+  if lstSplitVideo.Count = 0 then
+  begin
+    MessageBox(Handle, PChar(TransUI('必须先打开一个视频文件，再进行视频分离')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    srchbxSelectVideoFile.SetFocus;
+    Exit;
+  end;
+
   if Trim(srchbxSelectVideoFile.Text) = '' then
   begin
     MessageBox(Handle, PChar(TransUI('必须先打开一个视频文件，再进行视频分离')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
@@ -1710,6 +1744,13 @@ var
   strOutPathName          : String;
   strOutFileName          : String;
 begin
+  if FFileStyle <> fsFile then
+  begin
+    MessageBox(Handle, PChar(TransUI('必须先打开一个视频文件')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    srchbxSelectVideoFile.SetFocus;
+    Exit;
+  end;
+
   if (Trim(srchbxSelectVideoFile.Text) = '') then
   begin
     MessageBox(Handle, PChar(TransUI('必须先打开一个视频文件')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);

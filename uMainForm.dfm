@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsConfig
+    ActivePage = tsPlay
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -63,6 +63,9 @@ object frmFFUI: TfrmFFUI
         Caption = 'pnlButtonCommand'
         ShowCaption = False
         TabOrder = 0
+        DesignSize = (
+          980
+          38)
         object btnVideoPlayPlay: TButton
           Left = 10
           Top = 5
@@ -93,13 +96,14 @@ object frmFFUI: TfrmFFUI
           OnClick = btnVideoPlayStopClick
         end
         object btnPlayUSBCamera: TButton
-          Left = 832
+          Left = 836
           Top = 5
           Width = 135
           Height = 29
+          Anchors = [akTop, akRight]
           Caption = #25773#25918' USB '#25668#20687#22836
           TabOrder = 3
-          OnClick = btnVideoPlayPlayClick
+          OnClick = btnPlayUSBCameraClick
         end
       end
       object pnlVideo: TPanel
