@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsPlay
+    ActivePage = tsInfo
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50

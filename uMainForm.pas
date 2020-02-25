@@ -3,7 +3,8 @@ unit uMainForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.Win.Registry, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList, System.DateUtils,
+  Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, Winapi.ActiveX, Winapi.DirectShow9,
+  System.SysUtils, System.StrUtils, System.Classes, System.Win.Registry, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList, System.DateUtils,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl, Vcl.ImgList,
   {第三方控件}
   SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI, Vcl.ExtDlgs;
@@ -221,7 +222,7 @@ type
     { 创建语法高亮的 SynEdit 控件 }
     procedure CreateSynEdit;
     { 检查本机是否有 USB 摄像头 }
-    procedure CheckUSBCamera;
+    function CheckUSBCamera: Boolean;
     { 加载系统参数 }
     procedure LoadConfig;
     { 保存系统参数 }
@@ -648,9 +649,24 @@ begin
 end;
 
 { 检查本机是否有 USB 摄像头 }
-procedure TfrmFFUI.CheckUSBCamera;
+function TfrmFFUI.CheckUSBCamera: Boolean;
+var
+  hr        : Integer;
+  SysDevEnum: ICreateDevEnum;
+  EnumCat   : IEnumMoniker;
 begin
+  Result := False;
 
+  hr := CocreateInstance(CLSID_SystemDeviceEnum, nil, CLSCTX_INPROC, IID_ICreateDevEnum, SysDevEnum);
+  if hr <> S_OK then
+    Exit;
+
+  try
+    Result := SysDevEnum.CreateClassEnumerator(CLSID_VideoInputDeviceCategory, EnumCat, 0) = S_OK;
+  finally
+    EnumCat    := nil;
+    SysDevEnum := nil;
+  end;
 end;
 
 procedure TfrmFFUI.FormCreate(Sender: TObject);
@@ -669,10 +685,8 @@ begin
   { 加载系统参数 }
   LoadConfig;
 
-  { 检查本机是否有 USB 摄像头 }
-  CheckUSBCamera;
-
-  dlgOpenVideoFile.Filter := Ifthen(FlngUI = lngChinese, '视频文件(', 'Video file(') + c_strVideoFormat + ')|' + c_strVideoFormat;
+  btnPlayUSBCamera.Enabled := CheckUSBCamera;
+  dlgOpenVideoFile.Filter  := Ifthen(FlngUI = lngChinese, '视频文件(', 'Video file(') + c_strVideoFormat + ')|' + c_strVideoFormat;
 end;
 
 procedure TfrmFFUI.FormDestroy(Sender: TObject);
