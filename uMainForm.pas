@@ -236,6 +236,7 @@ type
     procedure DosCommandTerminated(Sender: TObject);
     { Dos 命令行运行返回的字符串 }
     procedure DosCommandLine(ASender: TObject; const ANewLine: string; AOutputType: TOutputType);
+    function DosCommandLineUTF8Dec(ASender: TObject; ABuf: TStream): string;
     { 查询目录下的所有视频文件 }
     procedure FindVideoFile(const strFolder: string);
     { 播放视频 }
@@ -277,18 +278,7 @@ const
   c_strVideoFormat    = '*.AVI;*.FLV;*.M2V;*.MKV;*.MOV;*.MPG;*.MP4;*.H264;*.H265;*.RMVB;*.TS;*.VOB;*.WMV;*.YUV';
   c_strSubtitleFormat = '*.txt;*.ass;*.srt';
 
-procedure DosSupportUTF8;
-begin
-  with TRegistry.Create do
-  begin
-    RootKey := HKEY_LOCAL_MACHINE;
-    OpenKey('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor', True);
-    WriteString('autorun', 'chcp 65001');
-    Free;
-  end;
-end;
-
-{ 更改界面语言 }
+  { 更改界面语言 }
 procedure TfrmFFUI.ChangeLanguageUI;
 begin
   case FlngUI of
@@ -672,9 +662,10 @@ end;
 procedure TfrmFFUI.FormCreate(Sender: TObject);
 begin
   { 创建第三方控件 }
-  FDOSCommand              := TDosCommand.Create(nil);
-  FDOSCommand.OnNewLine    := DosCommandLine;
-  FDOSCommand.OnTerminated := DosCommandTerminated;
+  FDOSCommand                := TDosCommand.Create(nil);
+  FDOSCommand.OnNewLine      := DosCommandLine;
+  FDOSCommand.OnCharDecoding := DosCommandLineUTF8Dec;
+  FDOSCommand.OnTerminated   := DosCommandTerminated;
   CreateSynEdit;
 
   { 初始化变量 }
@@ -741,6 +732,19 @@ begin
   else if FStatStyle = ssCut then
   begin
     FSynEdit_VideoCut.Lines.Insert(0, ANewLine);
+  end;
+end;
+
+function TfrmFFUI.DosCommandLineUTF8Dec(ASender: TObject; ABuf: TStream): string;
+var
+  stream: TStringStream;
+begin
+  stream := TStringStream.Create('', TEncoding.UTF8);
+  try
+    stream.LoadFromStream(ABuf);
+    Result := stream.DataString;
+  finally
+    stream.Free;
   end;
 end;
 
