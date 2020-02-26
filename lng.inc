@@ -47,6 +47,10 @@ begin
       Result := 'Multiple video files must be added before connecting'
     else if SameText(strLang, '必须先打开一个视频文件') then
       Result := 'Must be open a video file'
+    else if SameText(strLang, '直播推送地址不能为空') then
+      Result := 'Live address is must not null'
+    else if SameText(strLang, '本机没有发现任何 USB 摄像头') then
+      Result := ' Not find any USB Camera on PC'
   end
   else
   begin
@@ -106,10 +110,12 @@ begin
   chkAddWaterMark.Caption     := '添加水印';
   lblWatermark.Caption        := '图片路径：';
 
+  rgLive.Caption          := '直播源：';
   rgLive.Items.Strings[0] := '磁盘文件';
   rgLive.Items.Strings[1] := 'USB摄像头';
-  rgLive.Items.Strings[2] := 'IP 相机';
-  rgLive.Items.Strings[3] := '桌 面';
+  rgLive.Items.Strings[2] := '桌 面';
+  grpLiveAddress.Caption  := '直播地址：';
+  btnLive.Caption         := '开始直播';
 
   rgPlayUI.Caption           := '播放时使用的视频库：';
   rgUseGPU.Caption           := '是否使用GPU加速：';
@@ -231,10 +237,12 @@ begin
   lblCutImageFormat.Caption := 'Format:';
   btnCut.Caption            := 'Cut';
 
+  rgLive.Caption          := 'Live source:';
   rgLive.Items.Strings[0] := 'Disk File';
   rgLive.Items.Strings[1] := 'USB Camera';
-  rgLive.Items.Strings[2] := 'IP Camera';
-  rgLive.Items.Strings[3] := 'Desktop';
+  rgLive.Items.Strings[2] := 'Desktop';
+  grpLiveAddress.Caption  := 'Live address:';
+  btnLive.Caption         := 'Start live';
 
   rgPlayUI.Caption           := 'Video library for play:';
   rgUseGPU.Caption           := 'Use GPU Accelerate:';

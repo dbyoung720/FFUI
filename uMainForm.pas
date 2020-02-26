@@ -38,7 +38,6 @@ type
     tsMerge: TTabSheet;
     tsLive: TTabSheet;
     rgLive: TRadioGroup;
-    pnlWeb: TPanel;
     srchbxSelectVideoFile: TSearchBox;
     dlgOpenVideoFile: TOpenDialog;
     tsConfig: TTabSheet;
@@ -146,7 +145,7 @@ type
     srchbxCutVideoSavePath: TSearchBox;
     chkCutOpenSavePath: TCheckBox;
     grpLiveAddress: TGroupBox;
-    edtIP: TEdit;
+    edtLiveIP: TEdit;
     btnLive: TButton;
     btnPlayUSBCamera: TButton;
     chkConvAutoSearchSubtitle: TCheckBox;
@@ -201,19 +200,21 @@ type
     procedure btnLiveClick(Sender: TObject);
     procedure btnPlayUSBCameraClick(Sender: TObject);
   private
-    FlngUI             : TLangUI;
-    FDOSCommand        : TDosCommand;
-    FSynEdit_VideoInfo : TSynEdit;
-    FSynEdit_VideoConv : TSynEdit;
-    FSynEdit_VideoSplit: TSynEdit;
-    FSynEdit_VideoMerge: TSynEdit;
-    FSynEdit_VideoCut  : TSynEdit;
-    FJSONHL            : TSynJSONSyn;
-    FFileStyle         : TFileStyle;
-    FVideoStyle        : TVideoStyle;
-    FhPlayVideoWnd     : HWND;
-    FStatStyle         : TStatStyle;
-    FbLoadConfig       : Boolean;
+    FlngUI                   : TLangUI;
+    FDOSCommand              : TDosCommand;
+    FSynEdit_VideoInfo       : TSynEdit;
+    FSynEdit_VideoConv       : TSynEdit;
+    FSynEdit_VideoSplit      : TSynEdit;
+    FSynEdit_VideoMerge      : TSynEdit;
+    FSynEdit_VideoCut        : TSynEdit;
+    FSynEdit_VideoLive       : TSynEdit;
+    FJSONHL                  : TSynJSONSyn;
+    FFileStyle               : TFileStyle;
+    FVideoStyle              : TVideoStyle;
+    FhPlayVideoWnd           : HWND;
+    FStatStyle               : TStatStyle;
+    FbLoadConfig             : Boolean;
+    FstrUSBCameraFriendlyName: String;
     { 更改界面语言 }
     procedure ChangeLanguageUI;
     procedure ChangeLanguageChinese;
@@ -636,14 +637,36 @@ begin
   FSynEdit_VideoCut.ScrollBars     := ssVertical;
   FSynEdit_VideoCut.Highlighter    := FJSONHL;
   FSynEdit_VideoCut.ReadOnly       := True;
+
+  FSynEdit_VideoLive                := TSynEdit.Create(tsLive);
+  FSynEdit_VideoLive.Parent         := tsLive;
+  FSynEdit_VideoLive.Left           := 10;
+  FSynEdit_VideoLive.Top            := 80;
+  FSynEdit_VideoLive.Width          := 960;
+  FSynEdit_VideoLive.Height         := 490;
+  FSynEdit_VideoLive.Anchors        := [akLeft, akTop, akRight, akBottom];
+  FSynEdit_VideoLive.Gutter.Visible := False;
+  FSynEdit_VideoLive.Font.Name      := '宋体';
+  FSynEdit_VideoLive.Font.Size      := 12;
+  FSynEdit_VideoLive.RightEdge      := pnlVideoConv.Width;
+  FSynEdit_VideoLive.ScrollBars     := ssVertical;
+  FSynEdit_VideoLive.Highlighter    := FJSONHL;
+  FSynEdit_VideoLive.ReadOnly       := True;
+
 end;
 
 { 检查本机是否有 USB 摄像头 }
 function TfrmFFUI.CheckUSBCamera: Boolean;
+const
+  IID_IPropertyBag: TGUID = '{55272A00-42CB-11CE-8135-00AA004BB851}';
 var
   hr        : Integer;
   SysDevEnum: ICreateDevEnum;
   EnumCat   : IEnumMoniker;
+  Moniker   : IMoniker;
+  Fetched   : ULONG;
+  PropBag   : IPropertyBag;
+  strName   : OleVariant;
 begin
   Result := False;
 
@@ -653,6 +676,18 @@ begin
 
   try
     Result := SysDevEnum.CreateClassEnumerator(CLSID_VideoInputDeviceCategory, EnumCat, 0) = S_OK;
+
+    if Result then
+    begin
+      while (EnumCat.Next(1, Moniker, @Fetched) = S_OK) do
+      begin
+        Moniker.BindToStorage(nil, nil, IID_IPropertyBag, PropBag);
+        PropBag.Read('FriendlyName', strName, nil);
+        FstrUSBCameraFriendlyName := strName;
+        Break;
+      end;
+    end;
+
   finally
     EnumCat    := nil;
     SysDevEnum := nil;
@@ -688,6 +723,7 @@ begin
   { 销毁创建的第三方控件 }
   FDOSCommand.Free;
   FJSONHL.Free;
+  FSynEdit_VideoLive.Free;
   FSynEdit_VideoCut.Free;
   FSynEdit_VideoMerge.Free;
   FSynEdit_VideoSplit.Free;
@@ -732,6 +768,10 @@ begin
   else if FStatStyle = ssCut then
   begin
     FSynEdit_VideoCut.Lines.Insert(0, ANewLine);
+  end
+  else if FStatStyle = ssLive then
+  begin
+    FSynEdit_VideoLive.Lines.Insert(0, ANewLine);
   end;
 end;
 
@@ -1821,33 +1861,54 @@ end;
 { ------------------------------------------------------------------------- 视频直播 ------------------------------------------------------------------------------- }
 
 procedure TfrmFFUI.btnLiveClick(Sender: TObject);
+var
+  strFFMPEGPath: String;
+  strLive      : String;
 begin
-  // ffmpeg -devices
-  // ffmpeg -list_devices true -f dshow -i dummy
-  // ffmpeg -list_options true -f dshow -i video="Integrated Camera"
+  { 合法性检查 }
+  if (rgLive.ItemIndex = 0) and (Trim(srchbxSelectVideoFile.Text) = '') then
+  begin
+    MessageBox(Handle, PChar(TransUI('必须先打开一个视频文件')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    srchbxSelectVideoFile.SetFocus;
+    Exit;
+  end;
 
-  // 推流你得有个流媒体服务，个人测试用小水管：rtmp://eguid.cc:1935/rtmp/test（小水管，请尽量错开时间使用，另切记推流视频码率不要太高，避免占用太多带宽）
+  if Trim(edtLiveIP.Text) = '' then
+  begin
+    MessageBox(Handle, PChar(TransUI('直播推送地址不能为空')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+    edtLiveIP.SetFocus;
+    Exit;
+  end;
 
-  // https://blog.csdn.net/leixiaohua1020/article/details/38284961#
+  { 获取推送方式 }
+  strFFMPEGPath := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
+  if rgLive.ItemIndex = 0 then
+  begin
+    strLive := Format('"%s\ffmpeg" -re -i "%s" -c:v libx264 -c:a aac -f flv %s', [strFFMPEGPath, srchbxSelectVideoFile.Text, edtLiveIP.Text]);
+  end
+  else if rgLive.ItemIndex = 1 then
+  begin
+    if FstrUSBCameraFriendlyName <> '' then
+    begin
+      strLive := Format('"%s\ffmpeg" -f dshow   -i video="%s" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv %s', [strFFMPEGPath, FstrUSBCameraFriendlyName, edtLiveIP.Text]);
+    end
+    else
+    begin
+      MessageBox(Handle, PChar(TransUI('本机没有发现任何 USB 摄像头')), PChar(TransUI(c_strMsgTitle)), MB_OK or MB_ICONWARNING);
+      Exit;
+    end;
+  end
+  else if rgLive.ItemIndex = 2 then
+  begin
+    strLive := Format('"%s\ffmpeg" -f gdigrab   -i desktop    -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv %s', [strFFMPEGPath, edtLiveIP.Text]);
+  end;
 
-  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f h264        udp://233.233.233.223:6666
-  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec mpeg2video                                      -f mpeg2video  udp://233.233.233.223:6666
-  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f rtp rtp://233.233.233.223:6666>test.sdp
-  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv rtmp://localhost/oflaDemo/livestream
-
-  // ffmpeg -f dshow -i video="screen-capture-recorder" -r 5 -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f h264 udp://233.233.233.223:6666
-  // ffmpeg -f dshow -i video="screen-capture-recorder" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f rtp rtp://233.233.233.223:6666>test.sdp
-  // ffmpeg -f dshow -i video="Integrated Camera" -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv rtmp://localhost/oflaDemo/livestream
-
-  // ffmpeg -f dshow   -i video="Integrated Camera" -vcodec libx264 -acodec copy -preset:v ultrafast -tune:v zerolatency -f flv rtmp://eguid.cc:1935/rtmp/eguid
-  // ffmpeg -f gdigrab -i desktop                   -vcodec libx264              -preset:v ultrafast -tune:v zerolatency -f flv rtmp://eguid.cc:1935/rtmp/destop
-
-  // ffplay -vcodec mpeg2video udp://233.233.233.223:6666
-
-  // 注1：考虑到提高libx264的编码速度，添加了-preset:v ultrafast和-tune:v zerolatency两个选项。
-  // 注2：结尾添加“>test.sdp”可以在发布的同时生成sdp文件。该文件可以用于该视频流的播放。如下命令即可播放：
-  // ffplay test.sdp
-
+  { 直播推送 }
+  FDOSCommand.CommandLine := strLive;
+  FDOSCommand.Execute;
+  FStatStyle := ssLive;
+  FSynEdit_VideoLive.Clear;
+  btnLive.Enabled := False;
 end;
 
 end.

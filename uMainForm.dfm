@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsInfo
+    ActivePage = tsLive
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -676,44 +676,34 @@ object frmFFUI: TfrmFFUI
       object rgLive: TRadioGroup
         Left = 10
         Top = 3
-        Width = 145
-        Height = 570
-        Anchors = [akLeft, akTop, akBottom]
+        Width = 275
+        Height = 65
         Caption = #30452#25773#28304#65306
+        Columns = 3
         ItemIndex = 0
         Items.Strings = (
           #30913#30424#25991#20214
           'USB '#25668#20687#22836
-          'IP   '#30456#26426
           #26700#38754)
         TabOrder = 0
       end
-      object pnlWeb: TPanel
-        Left = 168
-        Top = 80
-        Width = 804
-        Height = 493
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        BevelOuter = bvNone
-        BorderStyle = bsSingle
-        Caption = 'pnlWeb'
-        Ctl3D = False
-        ParentCtl3D = False
-        ShowCaption = False
-        TabOrder = 1
-      end
       object grpLiveAddress: TGroupBox
-        Left = 168
+        Left = 308
         Top = 3
-        Width = 441
+        Width = 509
         Height = 65
+        Anchors = [akLeft, akTop, akRight]
         Caption = #30452#25773#22320#22336#65306
-        TabOrder = 2
-        object edtIP: TEdit
+        TabOrder = 1
+        DesignSize = (
+          509
+          65)
+        object edtLiveIP: TEdit
           Left = 24
           Top = 24
-          Width = 405
+          Width = 469
           Height = 24
+          Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -721,7 +711,7 @@ object frmFFUI: TfrmFFUI
           Font.Style = []
           ParentFont = False
           TabOrder = 0
-          Text = 'rtmp://192.168.3.100:4444'
+          Text = 'rtmp://192.168.3.100:6666'
         end
       end
       object btnLive: TButton
@@ -731,7 +721,7 @@ object frmFFUI: TfrmFFUI
         Height = 60
         Anchors = [akTop, akRight]
         Caption = #24320#22987#30452#25773
-        TabOrder = 3
+        TabOrder = 2
         OnClick = btnLiveClick
       end
     end
