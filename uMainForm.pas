@@ -1193,7 +1193,7 @@ var
   strPlayProgramPath: String;
 begin
   strPlayProgramPath      := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
-  FDOSCommand.CommandLine := Format('"%s\ffplay.exe" -hide_banner -window_title ffplay -f dshow -i 0', [strPlayProgramPath]);
+  FDOSCommand.CommandLine := Format('"%s\ffplay" -f dshow -i video="%s"', [strPlayProgramPath, FstrUSBCameraFriendlyName]);
   FDOSCommand.Execute;
   statInfo.SimpleText       := FDOSCommand.CommandLine;
   tmrPlayVideo.Enabled      := True;
