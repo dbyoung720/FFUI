@@ -1,4 +1,4 @@
-# FFUI：FFMPEG 的前端界面
+# FFUI：FFMPEG 命令行的前端界面
 
 - [English](readme.md)
 
