@@ -1,1 +1,3 @@
 *.m linguist-language=Pascal
+*.js linguist-language=Pascal
+*.mo linguist-language=Pascal
