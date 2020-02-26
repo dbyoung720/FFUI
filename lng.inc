@@ -114,6 +114,7 @@ begin
   rgLive.Items.Strings[0] := '磁盘文件';
   rgLive.Items.Strings[1] := 'USB摄像头';
   rgLive.Items.Strings[2] := '桌 面';
+  rgLive.Items.Strings[3] := '网络串流';
   grpLiveAddress.Caption  := '直播地址：';
   btnLive.Caption         := '开始直播';
 
@@ -241,6 +242,7 @@ begin
   rgLive.Items.Strings[0] := 'Disk File';
   rgLive.Items.Strings[1] := 'USB Camera';
   rgLive.Items.Strings[2] := 'Desktop';
+  rgLive.Items.Strings[3] := 'Web stream';
   grpLiveAddress.Caption  := 'Live address:';
   btnLive.Caption         := 'Start live';
 

@@ -1039,6 +1039,7 @@ begin
   strFFMPEGPath := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
   SetDllDirectory(PChar(strFFMPEGPath));
   FSynEdit_VideoInfo.Lines.Clear;
+  { 仔细查看 TDOSCOMMAND 输出的 JSON，你会发现输出的 JSON 多了一行，是不规则的 JSON 字符串，是无法用 JSON 语法来解析的 }
   FDOSCommand.CommandLine := Format('"%s\ffprobe.exe" -hide_banner -v quiet -show_streams -print_format json "%s"', [strFFMPEGPath, strVideoFileName]);
   FDOSCommand.Execute;
   statInfo.SimpleText := FDOSCommand.CommandLine;
@@ -1224,25 +1225,19 @@ end;
 
 { 播放视频 }
 procedure TfrmFFUI.PlayVideoFile(const strVideoFileName: String);
+const
+  c_strPlayLibrary: array [0 .. 2] of String = ('video\ffmpeg', 'video\mpv', 'video\vlc');
 var
   strPlayProgramPath: String;
 begin
+  strPlayProgramPath := ExtractFilePath(ParamStr(0)) + c_strPlayLibrary[rgPlayUI.ItemIndex];
   case rgPlayUI.ItemIndex of
     0:
-      begin
-        strPlayProgramPath      := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
-        FDOSCommand.CommandLine := Format('"%s\ffplay.exe" -hide_banner -window_title ffplay "%s"', [strPlayProgramPath, strVideoFileName]);
-      end;
+      FDOSCommand.CommandLine := Format('"%s\ffplay.exe" -hide_banner -window_title ffplay "%s"', [strPlayProgramPath, strVideoFileName]);
     1:
-      begin
-        strPlayProgramPath      := ExtractFilePath(ParamStr(0)) + 'video\mpv';
-        FDOSCommand.CommandLine := Format('"%s\mpv.exe" --title=mpv "%s"', [strPlayProgramPath, strVideoFileName]);
-      end;
+      FDOSCommand.CommandLine := Format('"%s\mpv.exe" --title=mpv "%s"', [strPlayProgramPath, strVideoFileName]);
     2:
-      begin
-        strPlayProgramPath      := ExtractFilePath(ParamStr(0)) + 'video\vlc';
-        FDOSCommand.CommandLine := Format('"%s\vlc.exe" --no-qt-name-in-title --qt-minimal-view --no-qt-system-tray "%s"', [strPlayProgramPath, strVideoFileName]);
-      end;
+      FDOSCommand.CommandLine := Format('"%s\vlc.exe" --no-qt-name-in-title --qt-minimal-view --no-qt-system-tray "%s"', [strPlayProgramPath, strVideoFileName]);
   end;
   SetDllDirectory(PChar(strPlayProgramPath));
   FDOSCommand.Execute;
@@ -1356,18 +1351,6 @@ procedure TfrmFFUI.btnVideoConvParamClick(Sender: TObject);
 begin
   pgcAll.ActivePage := tsConfig;
 end;
-
-// F:\Green\Tools\VideoProc\ffmpeg.exe  -hide_banner -y -noautorotate
-// -i "F:\VIDEO\请回答1988 蓝光版\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.mkv"
-// -i C:\Users\dbyoung\AppData\Roaming\VideoProc\temp_P1XkOA\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.ass
-// -max_muxing_queue_size 1024
-// -c:v h264_nvenc -profile:v main -level:v 4.2 -pix_fmt yuv420p -rc vbr -cq 22 -qmin 5 -qmax 30 -g 250 -map 0:0
-// -c:a aac -b:a 128k -ar 44100 -ac 2 -map 0:1 -metadata:s:a:0 language=kor
-// -c:s:0 mov_text -map 1 -metadata:s:s:0 language=zho -t 300 -f mp4 -map_chapters -1
-// -metadata title=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS
-// -metadata artist=VideoProc -metadata genre=视频
-// -metadata comment=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS
-// E:\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.mp4
 
 { 开始视频转换 }
 procedure TfrmFFUI.btnVideoStartConvClick(Sender: TObject);
@@ -1895,7 +1878,10 @@ begin
   strFFMPEGPath := ExtractFilePath(ParamStr(0)) + 'video\ffmpeg';
   if rgLive.ItemIndex = 0 then
   begin
-    strLive := Format('"%s\ffmpeg" -re -i "%s" -c:v libx264 -c:a aac -f flv %s', [strFFMPEGPath, srchbxSelectVideoFile.Text, edtLiveIP.Text]);
+    if FFileStyle = fsFile then
+    begin
+      strLive := Format('"%s\ffmpeg" -re -i "%s" -c:v libx264 -c:a aac -f flv %s', [strFFMPEGPath, srchbxSelectVideoFile.Text, edtLiveIP.Text]);
+    end;
   end
   else if rgLive.ItemIndex = 1 then
   begin
@@ -1912,6 +1898,13 @@ begin
   else if rgLive.ItemIndex = 2 then
   begin
     strLive := Format('"%s\ffmpeg" -f gdigrab   -i desktop    -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv %s', [strFFMPEGPath, edtLiveIP.Text]);
+  end
+  else if rgLive.ItemIndex = 3 then
+  begin
+    if FFileStyle = fsStream then
+    begin
+      strLive := Format('"%s\ffmpeg" -f dshow   -i "%s"       -vcodec libx264 -preset:v ultrafast -tune:v zerolatency -f flv %s', [strFFMPEGPath, srchbxSelectVideoFile.Text, edtLiveIP.Text]);
+    end;
   end;
 
   { 直播推送 }

@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsPlay
+    ActivePage = tsLive
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -676,32 +676,33 @@ object frmFFUI: TfrmFFUI
       object rgLive: TRadioGroup
         Left = 10
         Top = 3
-        Width = 275
+        Width = 392
         Height = 65
         Caption = #30452#25773#28304#65306
-        Columns = 3
+        Columns = 4
         ItemIndex = 0
         Items.Strings = (
           #30913#30424#25991#20214
           'USB '#25668#20687#22836
-          #26700#38754)
+          #26700#38754
+          #32593#32476#20018#27969)
         TabOrder = 0
       end
       object grpLiveAddress: TGroupBox
-        Left = 308
+        Left = 408
         Top = 3
-        Width = 509
+        Width = 409
         Height = 65
         Anchors = [akLeft, akTop, akRight]
         Caption = #30452#25773#22320#22336#65306
         TabOrder = 1
         DesignSize = (
-          509
+          409
           65)
         object edtLiveIP: TEdit
           Left = 24
           Top = 24
-          Width = 469
+          Width = 369
           Height = 24
           Anchors = [akLeft, akTop, akRight]
           Font.Charset = DEFAULT_CHARSET
@@ -712,6 +713,7 @@ object frmFFUI: TfrmFFUI
           ParentFont = False
           TabOrder = 0
           Text = 'rtmp://192.168.3.100:6666'
+          ExplicitWidth = 469
         end
       end
       object btnLive: TButton
