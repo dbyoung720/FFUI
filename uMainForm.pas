@@ -237,6 +237,7 @@ type
     procedure DosCommandTerminated(Sender: TObject);
     { Dos 命令行运行返回的字符串 }
     procedure DosCommandLine(ASender: TObject; const ANewLine: string; AOutputType: TOutputType);
+    { 使 DOS 命令行提示符支持 UTF8 编码，解决乱码问题 }
     function DosCommandLineUTF8Dec(ASender: TObject; ABuf: TStream): string;
     { 查询目录下的所有视频文件 }
     procedure FindVideoFile(const strFolder: string);
@@ -775,16 +776,26 @@ begin
   end;
 end;
 
+{ 使 DOS 命令行提示符支持 UTF8 编码，解决乱码问题 }
 function TfrmFFUI.DosCommandLineUTF8Dec(ASender: TObject; ABuf: TStream): string;
 var
-  stream: TStringStream;
+  stream : TStringStream;
+  pBytes : TBytes;
+  iLength: Integer;
 begin
-  stream := TStringStream.Create('', TEncoding.UTF8);
   try
-    stream.LoadFromStream(ABuf);
-    Result := stream.DataString;
-  finally
-    stream.Free;
+    stream := TStringStream.Create('', TEncoding.UTF8);
+    try
+      stream.LoadFromStream(ABuf);
+      Result := stream.DataString;
+    finally
+      stream.Free;
+    end;
+  except
+    iLength := ABuf.Size;
+    SetLength(pBytes, iLength);
+    ABuf.Read(pBytes, iLength);
+    Result := TEncoding.ANSI.GetString(pBytes);
   end;
 end;
 
@@ -1540,7 +1551,7 @@ begin
     for I := 0 to lstSplitVideo.Count - 1 do
     begin
       intIndex          := StrToInt(lstSplitVideo.Items.Strings[I].Split(['/'])[0]);
-      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + 'mp4'; // lstSplitVideo.Items.Strings[I].Split(['/'])[1];
+      strOutputFileName := strSavePath + ChangeFileExt(ExtractFileName(srchbxSelectVideoFile.Text), '') + Format('_%0.2d', [intIndex]) + '.' + 'mp4';
       Add(Format('"%s\ffmpeg.exe" -hide_banner -i "%s" -c copy -map 0:%d -y "%s"', [strFFMPEGPath, strVideoFileName, intIndex, strOutputFileName]));
     end;
 
@@ -1688,7 +1699,7 @@ begin
   { 字幕输入 }
   for I := 0 to lstMergeSubtitle.Count - 1 do
   begin
-    strSubtitleStreamFile := strSubtitleStreamFile + ' -i "' + lstMergeAudio.Items[I] + '"';
+    strSubtitleStreamFile := strSubtitleStreamFile + ' -i "' + lstMergeSubtitle.Items[I] + '"';
     strSubtitleStreamCopy := strSubtitleStreamCopy + ' -scodec copy ';
   end;
 
