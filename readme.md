@@ -17,4 +17,4 @@
     4¡¢Video Separate£»       Support£ºSeparate Video¡¢Audio¡¢Subtitle£»
     5¡¢Video Merge£»          Support£ºMerte Video¡¢Audio¡¢Subtitle£»Watermark£»Connect multiple video streams£» 
     6¡¢Video Cut£»            Support£ºVideo¡¢Audio¡¢Image£»
-    7¡¢Video Live£»           Support£ºFile¡¢USB Camera¡¢Desktop£»UDP¡¢RTP¡¢RTSP£»
+    7¡¢Video Live£»           Support£ºFile¡¢USB Camera¡¢Desktop£»UDP¡¢RTP¡¢RTMP£»
