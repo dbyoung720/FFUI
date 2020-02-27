@@ -265,6 +265,8 @@ type
     procedure FinishVideoMerge;
     { 视频截取结束 }
     procedure FinishVideoCut;
+    { 查找相同文件的字幕文件 }
+    function FindSameNameSubtitle(const strVideoFileName: string): String;
   end;
 
 var
@@ -1352,16 +1354,38 @@ begin
   pgcAll.ActivePage := tsConfig;
 end;
 
+{ 查找相同文件的字幕文件 }
+function TfrmFFUI.FindSameNameSubtitle(const strVideoFileName: string): String;
+var
+  strSubtitleFileName: String;
+begin
+  Result := '';
+
+  strSubtitleFileName := ChangeFileExt(strVideoFileName, '.srt');
+  if FileExists(strSubtitleFileName) then
+  begin
+    Result := Format(' -i "%s" -c:s copy ', [strSubtitleFileName]);
+  end
+  else
+  begin
+    strSubtitleFileName := ChangeFileExt(strVideoFileName, '.ass');
+    if FileExists(strSubtitleFileName) then
+    begin
+      Result := Format(' -i "%s" -c:s copy ', [strSubtitleFileName]);
+    end;
+  end;
+end;
+
 { 开始视频转换 }
 procedure TfrmFFUI.btnVideoStartConvClick(Sender: TObject);
 const
   c_strVideoSize           = ' -s %sx%s ';
   c_strVideoInfo           = ' -metadata "title=%s" -metadata "artist=%s" -metadata "genre=%s" -metadata "comment=%s" ';
-  c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx264    %s %s -y "%s"';
-  c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v libx265    %s %s -y "%s"';
-  c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" -c:v flv        %s %s -y "%s"';
-  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v h264_nvenc -profile:v main -level:v 4.2 -pix_fmt yuv420p %s %s -y "%s"';
-  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" -c:v nvenc_hevc %s %s -y "%s"';
+  c_strFFMPEGConv_CPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" %s -c:v libx264    %s %s -y "%s"';
+  c_strFFMPEGConv_CPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" %s -c:v libx265    %s %s -y "%s"';
+  c_strFFMPEGConv_CPU_FFLV = '"%s\ffmpeg" -hide_banner -i "%s" %s -c:v flv        %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_H264 = '"%s\ffmpeg" -hide_banner -i "%s" %s -c:v h264_nvenc -profile:v main -level:v 4.2 -pix_fmt yuv420p %s %s -y "%s"';
+  c_strFFMPEGConv_GPU_H265 = '"%s\ffmpeg" -hide_banner -i "%s" %s -c:v nvenc_hevc %s %s -y "%s"';
 var
   strFFMPEGPath      : String;
   strFFMPGCommandLine: String;
@@ -1373,6 +1397,7 @@ var
   strVideoSize       : String;
   strVideoInfo       : String;
   lstCMD             : TStringList;
+  strSubtitle        : String;
 begin
   if lstFiles.Count <= 0 then
   begin
@@ -1380,6 +1405,7 @@ begin
     Exit;
   end;
 
+  strSubtitle  := '';
   strVideoInfo := Format(c_strVideoInfo, [edtTitle.Text, edtArtist.Text, edtGenre.Text, edtComment.Text]);
   if chkVideoSize.Checked then
     strVideoSize := ''
@@ -1410,19 +1436,23 @@ begin
           System.SysUtils.ForceDirectories(ExtractFileDir(strOutPutFile));
       end;
 
+      { 查找相同文件的字幕文件 }
+      if chkConvAutoSearchSubtitle.Checked then
+        strSubtitle := FindSameNameSubtitle(strInputFile);
+
       case cbbConv.ItemIndex of
         0:
           if rgUseGPU.ItemIndex = 1 then
-            strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile])
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H264, [strFFMPEGPath, strInputFile, strSubtitle, strVideoSize, strVideoInfo, strOutPutFile])
           else
-            strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H264, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H264, [strFFMPEGPath, strInputFile, strSubtitle, strVideoSize, strVideoInfo, strOutPutFile]);
         1:
           if rgUseGPU.ItemIndex = 1 then
-            strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile])
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_H265, [strFFMPEGPath, strInputFile, strSubtitle, strVideoSize, strVideoInfo, strOutPutFile])
           else
-            strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
+            strFFMPGCommandLine := Format(c_strFFMPEGConv_GPU_H265, [strFFMPEGPath, strInputFile, strSubtitle, strVideoSize, strVideoInfo, strOutPutFile]);
         2:
-          strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_FFLV, [strFFMPEGPath, strInputFile, strVideoSize, strVideoInfo, strOutPutFile]);
+          strFFMPGCommandLine := Format(c_strFFMPEGConv_CPU_FFLV, [strFFMPEGPath, strInputFile, strSubtitle, strVideoSize, strVideoInfo, strOutPutFile]);
       end;
 
       lstCMD.Add(strFFMPGCommandLine);
@@ -1436,7 +1466,7 @@ begin
     FSynEdit_VideoConv.Lines.Clear;
     btnVideoStartConv.Enabled := False;
     btnVideoStopConv.Enabled  := True;
-    statInfo.SimpleText       := lstCMD.Strings[0];
+    statInfo.SimpleText       := strTempCMDFileName;
   finally
     lstCMD.Free;
   end;

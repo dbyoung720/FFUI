@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsLive
+    ActivePage = tsConfig
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -713,7 +713,6 @@ object frmFFUI: TfrmFFUI
           ParentFont = False
           TabOrder = 0
           Text = 'rtmp://192.168.3.100:6666'
-          ExplicitWidth = 469
         end
       end
       object btnLive: TButton
@@ -811,7 +810,7 @@ object frmFFUI: TfrmFFUI
         end
         object lblSaveVideoPath: TLabel
           Left = 349
-          Top = 49
+          Top = 52
           Width = 39
           Height = 13
           Caption = #36335#24452#65306
@@ -900,7 +899,7 @@ object frmFFUI: TfrmFFUI
         end
         object chkConvSavePath: TCheckBox
           Left = 332
-          Top = 23
+          Top = 26
           Width = 469
           Height = 17
           Caption = #20445#23384#36335#24452#21516#25991#20214
@@ -983,7 +982,7 @@ object frmFFUI: TfrmFFUI
         end
         object srchbxVideoConvSavePath: TSearchBox
           Left = 394
-          Top = 46
+          Top = 49
           Width = 407
           Height = 21
           TabOrder = 11
