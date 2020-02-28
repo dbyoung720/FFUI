@@ -40,7 +40,7 @@ object frmFFUI: TfrmFFUI
     Top = 45
     Width = 992
     Height = 644
-    ActivePage = tsConfig
+    ActivePage = tsInfo
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = ilpgc
     TabHeight = 50
@@ -657,7 +657,7 @@ object frmFFUI: TfrmFFUI
         OnClick = chkCutToImageClick
       end
       object btnCut: TButton
-        Left = 852
+        Left = 848
         Top = 324
         Width = 95
         Height = 44

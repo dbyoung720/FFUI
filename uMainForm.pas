@@ -736,7 +736,7 @@ end;
 
 procedure TfrmFFUI.FormResize(Sender: TObject);
 begin
-  pgcAll.TabWidth := (Width - 35) div 8;
+  pgcAll.TabWidth := (Width - 40) div 8;
 
   if FhPlayVideoWnd <> 0 then
   begin
