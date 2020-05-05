@@ -20,4 +20,4 @@
     7¡¢Video Live£»           Support£ºFile¡¢USB Camera¡¢Desktop£»UDP¡¢RTP¡¢RTMP£»
 
 ## III£ºNote
-   Now, FFUI has been merged into PBox(- [https://github.com/dbyoung720/PBox])£¬This project is not under maintenance¡£
+   Now, FFUI has been merged into PBox([PBox](https://github.com/dbyoung720/PBox))£¬This project is not under maintenance¡£

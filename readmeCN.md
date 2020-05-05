@@ -19,4 +19,4 @@
     7、视频直播；     支持：文件、USB Camera、桌面；UDP、RTP、RTMP；
     
 ## 三：注意
-   现，FFUI 已经合并进 PBox 中(- [https://github.com/dbyoung720/PBox])，此项目不在维护。
+   现，FFUI 已经合并进 PBox 中([PBox](https://github.com/dbyoung720/PBox))，此项目不在维护。
