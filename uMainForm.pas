@@ -5,9 +5,9 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.ShellAPI, Winapi.ActiveX, Winapi.DirectShow9,
   System.SysUtils, System.StrUtils, System.Classes, System.Win.Registry, System.IniFiles, System.IOUtils, System.Types, System.Math, System.ImageList, System.DateUtils,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl, Vcl.ImgList,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.WinXCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.Clipbrd, Vcl.FileCtrl, Vcl.ImgList, Vcl.ExtDlgs,
   {第三方控件}
-  SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI, Vcl.ExtDlgs;
+  SynEdit, SynHighlighterJSON, DosCommand, uProcessAPI;
 
 type
   { 打开文件方式：文件/文件夹/网络视频流地址 }
