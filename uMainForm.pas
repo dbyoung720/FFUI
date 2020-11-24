@@ -1662,17 +1662,6 @@ begin
   end;
 end;
 
-// F:\Green\Tools\VideoProc\ffmpeg.exe  -hide_banner -y -noautorotate
-// -i D:\Temp\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00.mp4
-// -i C:\Users\dbyoung\AppData\Roaming\VideoProc\temp_P1XkOA\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS.ass -max_muxing_queue_size 1024
-// -c:v h264_nvenc -profile:v main -level:v 4.2 -pix_fmt yuv420p -rc vbr -cq 22 -qmin 5 -qmax 30 -g 250 -map 0:0 -an
-// -c:s:0 mov_text -map 1 -metadata:s:s:0 language=ave -t 300 -f mp4 -map_chapters -1
-// -metadata title=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00
-// -metadata artist=VideoProc
-// -metadata genre=สำฦต
-// -metadata comment=Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00
-// E:\Reply.1988.E01.Bluray.1080p.HEVC.10bit.AC3-ENL@FRDS_00.mp44
-
 procedure TfrmFFUI.btnMergeClick(Sender: TObject);
 var
   I                    : Integer;
