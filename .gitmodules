@@ -4,3 +4,6 @@
 [submodule "vcl/DOSCommand"]
 	path = vcl/DOSCommand
 	url = https://github.com/TurboPack/DOSCommand.git
+[submodule "bin/nginx-rtmp-win32"]
+	path = bin/nginx-rtmp-win32
+	url = https://github.com/illuspas/nginx-rtmp-win32.git
